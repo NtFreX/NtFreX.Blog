@@ -1,3 +1,5 @@
+This is the source code of my blog. See it live here: ntfrex.com
+
 **Dependencies**
 
 Can be configured in the app settings.
