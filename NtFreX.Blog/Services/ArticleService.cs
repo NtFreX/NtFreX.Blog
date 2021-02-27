@@ -103,8 +103,8 @@ namespace NtFreX.Blog.Services
 
             return await cache.CacheAsync(includeUnpublished ? CacheKeys.AllArticles : CacheKeys.AllPublishedArticles, CacheKeys.TimeToLive, async () =>
             {
-                var items = await article.Find(d => includeUnpublished || IsPublished(d)).ToListAsync();
-                return items.OrderByDescending(d => d.Date).ToList();
+                var items = await article.Find(_ => true).ToListAsync();
+                return items.Where(d => includeUnpublished || IsPublished(d)).OrderByDescending(d => d.Date).ToList();
             });            
         }
 
