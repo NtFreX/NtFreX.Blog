@@ -1,4 +1,4 @@
-This is the source code of my blog. See it live here: ntfrex.com
+This is the source code of my blog. See it live here: https://ntfrex.com
 
 **Dependencies**
 
