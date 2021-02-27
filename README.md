@@ -2,8 +2,8 @@
 
 Can be configured in the app settings.
 
-Redis: ubuntu-one
-MongoDb: mongodb://ubuntu-one:27017,ubuntu-one:27018,ubuntu-one:27019/?replicaSet=rs0
+ - Redis: ubuntu-one
+ - MongoDb: mongodb://ubuntu-one:27017,ubuntu-one:27018,ubuntu-one:27019/?replicaSet=rs0
 
 **Build and run localy**
 
@@ -20,7 +20,7 @@ git pull \
 	&& sudo systemctl restart blog
 ```
 
-I have setup a systemd service named blog which runs my docker container similar to the following command.
+I have setup a systemd service named blog which runs my docker image similar to the following command.
 ```
 docker run -e NTFREXBLOGCERTPWD -p 80:80 -p 443:443 --name blog ntfrexblog
 ```
