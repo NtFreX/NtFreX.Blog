@@ -1,0 +1,38 @@
+{
+	"info": {
+		"name": "NtFreX.Blog",
+		"_postman_id": "6429c2e4-54f6-9da2-07a4-0d64d147db6b",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Post api/image",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": ""
+					}
+				},
+				"url": {
+					"raw": "https://localhost:5001/api/image/sj1.png",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"image",
+						"sj1.png"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

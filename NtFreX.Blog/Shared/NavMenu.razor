@@ -1,0 +1,35 @@
+﻿@using NtFreX.Blog.Pages
+@using NtFreX.Blog.Services
+@inject TagService TagService
+
+<div>
+    <div class="nav flex-column">
+        <NavLink href="" Match="NavLinkMatch.All">
+            <div style="color: white; text-align: center; margin: 15px 4px 15px 4px; font-family: Arial; font-size: 15px; ">
+                <img height="113" width="113" src="/api/image/profile.jpg">
+                <p style="font-weight: bold; margin-top: 15px; ">NTFREX'S SPACE</p>
+                <p>I'm a software developer with a wide range of interests. This blog is mainly to help me improve my writing and explaining skills.</p>
+                <p>ntfrex (at) gmail (dot) com</p>
+            </div>
+        </NavLink>
+
+        <div style="padding:4px;">
+            @if (tags != null)
+            {
+                @foreach (var tag in tags)
+                {
+                    <Tag Name="@tag" />
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<string> tags;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tags = await TagService.GetAllDistinctPublishedTagsAsync();
+    }
+}

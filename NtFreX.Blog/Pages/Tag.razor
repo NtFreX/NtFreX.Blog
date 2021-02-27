@@ -1,0 +1,16 @@
+﻿@page "/Tag"
+
+@using System.Text
+
+<NavLink href="@($"/{Base64UrlEncodedName}")" class="tag">
+    <span>@Name</span>
+</NavLink>
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+
+    public string Base64UrlEncodedName => Convert.ToBase64String(Encoding.UTF8.GetBytes(Name))
+        .Replace("+", "-")
+        .Replace("/", "_");
+}
