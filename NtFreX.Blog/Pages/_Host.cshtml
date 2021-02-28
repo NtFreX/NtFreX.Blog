@@ -8,20 +8,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6DMT54FM9"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+    <environment include="Production">
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6DMT54FM9"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
 
-        gtag('config', 'G-E6DMT54FM9');
-    </script>
+            gtag('config', 'G-E6DMT54FM9');
+        </script>
+        <meta name="google-site-verification" content="MAEgvSwMFjwJFm4j5G82JjicSuHql2MVwYxNziXk31c" />
+    </environment>
 
-    <meta charset="utf-8" />
-    <meta name="google-site-verification" content="MAEgvSwMFjwJFm4j5G82JjicSuHql2MVwYxNziXk31c" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NtFreX.Blog</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
