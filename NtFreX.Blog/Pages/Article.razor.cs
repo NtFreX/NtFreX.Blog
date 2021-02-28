@@ -12,6 +12,7 @@ namespace NtFreX.Blog.Pages
         private IReadOnlyList<ArticleModel> topArticles;
         private IReadOnlyList<CommentModel> comments;
         private IReadOnlyList<TagModel> tags;
+        private IReadOnlyList<TagModel> allTags;
         private CommentModel newComment;
 
         [Parameter] public string Id { get; set; }
@@ -26,6 +27,7 @@ namespace NtFreX.Blog.Pages
             article = await articleService.GetArticleByIdAsync(Id);
             comments = await commentService.GetCommentsByArticleIdAsync(Id);
             tags = await tagService.GetTagsByArticleIdAsync(Id);
+            allTags = await tagService.GetAllTagsAsync();
 
             await articleService.VisitArticleAsync(Id);
         }

@@ -52,6 +52,15 @@ app {
     padding-left: 2rem;
 }
 
+.links {
+    text-align: center;
+    margin: 10px;
+}
+.links img{
+    width: 20px;
+    margin: 4px;
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

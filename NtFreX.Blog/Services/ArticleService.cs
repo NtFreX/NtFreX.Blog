@@ -126,7 +126,7 @@ namespace NtFreX.Blog.Services
         public async Task SaveArticleAsync(ArticleModel model, string[] tags)
         {
             if (!authorizationManager.IsAdmin())
-                throw new Exception();
+                throw new UnauthorizedAccessException();
 
             await article.UpdateOneAsync(
                 Builders<ArticleModel>.Filter.Eq(d => d.Id, model.Id),
