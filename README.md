@@ -36,4 +36,5 @@ docker run -e NTFREXBLOGCERTPWD -p 80:80 -p 443:443 --name blog ntfrexblog
  - Randomize cache livetime so not all caches are invalidated at the same time
  - restricted /Private folder access doesn't work
  - cache blazor pages by route
+ - rolling updates
  - ...
