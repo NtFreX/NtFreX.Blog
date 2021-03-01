@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Web;
 using System;
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
 namespace NtFreX.Blog
@@ -43,13 +44,21 @@ namespace NtFreX.Blog
                 {
                     webHost
                         .UseConfiguration(configuration)
+                        .PreferHostingUrls(true)
                         .UseKestrel(options =>
                         {
+                            var pwd = configuration["Listeners:Certificate:Password"];
+                            var cert = new X509Certificate2(configuration["Listeners:Certificate:Path"], string.IsNullOrEmpty(pwd) ? Environment.GetEnvironmentVariable("NTFREXBLOGCERTPWD") : pwd);
                             options.ConfigureHttpsDefaults(listenOptions =>
                             {
-                                var pwd = configuration["Listeners:Certificate:Password"];
-                                listenOptions.ServerCertificate = new X509Certificate2(configuration["Listeners:Certificate:Path"], string.IsNullOrEmpty(pwd) ? Environment.GetEnvironmentVariable("NTFREXBLOGCERTPWD") : pwd);
+                                listenOptions.ServerCertificate = cert;
                             });
+                            options.Listen(IPAddress.Any, int.Parse(configuration["Listeners:Ports:HTTP"]));
+                            options.Listen(IPAddress.Any, int.Parse(configuration["Listeners:Ports:HTTPS"]), listenOptions =>
+                            {
+                                listenOptions.UseHttps(cert);
+                            });
+
                         })
                         .UseStartup<Startup>();
                 });
