@@ -23,10 +23,10 @@ namespace NtFreX.Blog
                 .AddJsonFile($"appsettings.{environment}.json", optional: true)
                 .Build();
 
-            CreateHostBuilder(args, config).Build().Run();
+            CreateHostBuilder(args, config, environment == "Development").Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args, IConfigurationRoot configuration) =>
+        public static IHostBuilder CreateHostBuilder(string[] args, IConfigurationRoot configuration, bool isDevelopment) =>
              Host.CreateDefaultBuilder(args)
                  .ConfigureLogging(logging =>
                  {
@@ -44,7 +44,7 @@ namespace NtFreX.Blog
                 {
                     webHost
                         .UseConfiguration(configuration)
-                        .PreferHostingUrls(true)
+                        .PreferHostingUrls(isDevelopment)
                         .UseKestrel(options =>
                         {
                             var pwd = configuration["Listeners:Certificate:Password"];
