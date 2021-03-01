@@ -35,5 +35,8 @@ namespace NtFreX.Blog.Model
 
         [BsonElement("path", Order = 9)]
         public string Path { get; set; }
+
+        [BsonElement("is_attack", Order = 10)]
+        public bool IsAttack { get; set; }
     }
 }
