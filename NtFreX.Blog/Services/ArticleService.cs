@@ -35,13 +35,14 @@ namespace NtFreX.Blog.Services
 
         public async Task VisitArticleAsync(string id)
         {
+            // TODO: correct this or just use data from request logger middleware
             var context = httpContextAccessor.HttpContext;
             var model = new VisitorModel
             {
                 Date = DateTime.Now,
-                RemoteIp = context.Connection.RemoteIpAddress.ToString(),
+                RemoteIp = context == null ? "" : context.Connection.RemoteIpAddress.ToString(),
                 Article = id,
-                UserAgent = context.Request.Headers["User-Agent"]
+                UserAgent = context == null ? "" : context?.Request.Headers["User-Agent"]
             };
             await visitor.InsertOneAsync(model);
 
@@ -50,10 +51,11 @@ namespace NtFreX.Blog.Services
 
         public async Task<long> CountVisitorsAsync(string id)
         {
+            // TODO: exclude own visits
             return await cache.CacheAsync(CacheKeys.VisitorsByArticleId(id), CacheKeys.TimeToLive, async () =>
             {
                 var items = await visitor.Find(Builders<VisitorModel>.Filter.Eq(d => d.Article, id)).ToListAsync();
-                return items.Count(d => !IPAddress.IsLoopback(IPAddress.Parse(d.RemoteIp)));
+                return items.Count(d => string.IsNullOrEmpty(d.RemoteIp) || !IPAddress.IsLoopback(IPAddress.Parse(d.RemoteIp)));
             });
         }
 
