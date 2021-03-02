@@ -44,5 +44,11 @@ namespace NtFreX.Blog.Model
 
         [BsonElement("body", Order = 12)]
         public string Body { get; set; }
+
+        [BsonElement("request_scheme", Order = 13)]
+        public string RequestScheme { get; set; }
+
+        [BsonElement("request_host", Order = 14)]
+        public string RequestHost { get; set; }
     }
 }

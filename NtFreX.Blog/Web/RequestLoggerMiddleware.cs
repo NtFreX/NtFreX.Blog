@@ -41,7 +41,9 @@ namespace NtFreX.Blog.Web
                 System = "NtFrex.Blog",
                 Path = context.Request.Path,
                 Method = context.Request.Method,
-                Body = await ReadBodyAsync(context)
+                Body = await ReadBodyAsync(context),
+                RequestHost = context.Request.Host.Value,
+                RequestScheme = context.Request.Scheme
             });
         }
 
