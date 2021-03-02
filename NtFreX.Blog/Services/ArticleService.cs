@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using NtFreX.Blog.Auth;
@@ -22,8 +23,9 @@ namespace NtFreX.Blog.Services
         private readonly IDistributedCache cache;
         private readonly AuthorizationManager authorizationManager;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IHostEnvironment hostEnvironment;
 
-        public ArticleService(Database database, TagService tagService, IDistributedCache cache, AuthorizationManager authorizationManager, IHttpContextAccessor httpContextAccessor) 
+        public ArticleService(Database database, TagService tagService, IDistributedCache cache, AuthorizationManager authorizationManager, IHttpContextAccessor httpContextAccessor, IHostEnvironment hostEnvironment) 
         {
             article = database.Blog.GetCollection<ArticleModel>("article");
             visitor = database.Blog.GetCollection<VisitorModel>("visitor");
@@ -31,10 +33,16 @@ namespace NtFreX.Blog.Services
             this.cache = cache;
             this.authorizationManager = authorizationManager;
             this.httpContextAccessor = httpContextAccessor;
+            this.hostEnvironment = hostEnvironment;
         }
 
         public async Task VisitArticleAsync(string id)
         {
+            if(hostEnvironment.IsDevelopment())
+            {
+                return;
+            }
+
             // TODO: correct this or just use data from request logger middleware
             var context = httpContextAccessor.HttpContext;
             var model = new VisitorModel

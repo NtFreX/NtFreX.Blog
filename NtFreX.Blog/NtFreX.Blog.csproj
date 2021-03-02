@@ -10,8 +10,11 @@
     <Content Include="wwwroot/.well-known/security.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\robots.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="App.Metrics.AspNetCore.All" Version="4.1.0" />
     <PackageReference Include="App.Metrics.Reporting.Console" Version="4.1.0" />
