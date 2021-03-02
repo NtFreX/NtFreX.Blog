@@ -39,13 +39,10 @@ namespace NtFreX.Blog.Model
         [BsonElement("is_attack", Order = 10)]
         public bool IsAttack { get; set; }
 
-        [BsonElement("is_expected", Order = 11)]
-        public bool IsExpected { get; set; }
-
-        [BsonElement("method", Order = 12)]
+        [BsonElement("method", Order = 11)]
         public string Method { get; set; }
 
-        [BsonElement("body", Order = 13)]
+        [BsonElement("body", Order = 12)]
         public string Body { get; set; }
     }
 }
