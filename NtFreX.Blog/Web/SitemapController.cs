@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NtFreX.Blog.Services;
+using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 
 namespace NtFreX.Blog.Web
 {
@@ -20,28 +20,24 @@ namespace NtFreX.Blog.Web
             var host = Request.Scheme + "://" + Request.Host;
 
             Response.ContentType = "application/xml";
-            using (var xml = XmlWriter.Create(Response.Body, new XmlWriterSettings { Indent = true, Async = true }))
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(@"<?xml version=""1.0"" encoding=""UTF-8""?>"));
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(@"<urlset xmlns=""http://www.sitemaps.org/schemas/sitemap/0.9"">"));
+            
+
+            await WriteUrlElementAsync(host);
+            foreach(var article in await articleService.GetAllArticlesAsync(false))
             {
-                xml.WriteStartDocument();
-                xml.WriteStartElement("urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
-
-                WriteUrlElement(xml, host);
-                foreach(var article in await articleService.GetAllArticlesAsync(false))
-                {
-                    WriteUrlElement(xml, $"{host}/article/{article.Id}");
-                }
-
-                xml.WriteEndElement();
-
-                await xml.FlushAsync();
+                await WriteUrlElementAsync($"{ host}/article/{article.Id}");
             }
+
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(@"</urlset>"));
         }
 
-        private void WriteUrlElement(XmlWriter xml, string path)
+        private async Task WriteUrlElementAsync(string path)
         {
-            xml.WriteStartElement("url");
-            xml.WriteElementString("loc", path);
-            xml.WriteEndElement();
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(@"<url>"));
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(@$"<loc>{path}</loc>"));
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(@"</url>"));
         }
     }
 }
