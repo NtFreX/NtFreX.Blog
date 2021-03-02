@@ -5,6 +5,7 @@ using NtFreX.Blog.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -35,11 +36,20 @@ namespace NtFreX.Blog.Web
                 StatusCode = context.Response.StatusCode,
                 Success = IsSuccesStatusCode(context.Response.StatusCode.ToString()),
                 IsAttack = Vulnerabilities.Any(x => x == context.Request.Path),
+                IsExpected = Exceptions.TryGetValue(context.Request.Path, out var statusCode) && statusCode == context.Response.StatusCode,
                 LatencyInMs = stopwatch.ElapsedMilliseconds,
                 Host = Environment.MachineName,
                 System = "NtFrex.Blog",
-                Path = context.Request.Path
+                Path = context.Request.Path,
+                Method = context.Request.Method,
+                Body = await ReadBodyAsync(context)
             });
+        }
+
+        private async Task<string> ReadBodyAsync(HttpContext context)
+        {
+            using var reader = new StreamReader(context.Request.Body);
+            return await reader.ReadToEndAsync();
         }
 
         private string ToJson(IHeaderDictionary headers)
@@ -56,6 +66,14 @@ namespace NtFreX.Blog.Web
             => (statusCode.StartsWith("2") && statusCode.Length == 3)        // success
                || (statusCode.StartsWith("1") && statusCode.Length == 3)     // informational response
                || (statusCode.StartsWith("3") && statusCode.Length == 3);    // redirection
+
+        private static Dictionary<string, int> Exceptions = new Dictionary<string, int>
+        {
+            { "/rss/", 404 },
+            { "/rss.xml", 404 },
+            { "/humans.txt", 404 },
+            { "/ads.txt", 404 },
+        };
 
         private static string[] Vulnerabilities = new string[]
         {
