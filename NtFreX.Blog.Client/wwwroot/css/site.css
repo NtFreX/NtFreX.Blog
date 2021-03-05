@@ -1,0 +1,139 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: Arial;
+}
+
+#app {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+.sidebar {
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    max-width: 350px;
+    min-width: 350px;
+    height: 100vh;
+    position: sticky;
+    top: 0px;
+    word-break: break-word;
+}
+
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.tag {
+    background-color: #f7f7f7;
+    border: 1px solid #f7f7f7;
+    border-radius: 15px;
+    padding: 1px 8px;
+    color: rgba(0,0,0,0.54);
+    line-height: 18px;
+    font-size: 12px;
+    font-style: italic;
+    border: 1px solid black;
+    margin:2px;
+    display:block;
+    float:left;
+}
+
+.main {
+    flex: 1;
+}
+
+.top-row {
+    margin-bottom: 20px;
+    align-items: center;
+    padding-top: 1rem;
+    padding-left: 2rem;
+}
+
+.links {
+    text-align: center;
+    margin: 10px;
+}
+.links img{
+    width: 20px;
+    margin: 4px;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+blockquote {
+    color:gray;
+    font-style:italic;
+}
+
+.article {
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+.article pre {
+    background-color: lightyellow;
+    color:black;
+    padding:4px;
+}
+
+.article img {
+    margin-bottom: 12px;
+    max-width:100%;
+}
+
+.article h4, .article h5, .article h6 {
+    border-bottom: 1px solid lightgray;
+}
+
+h4 {
+    font-size: 1.3rem;
+}
+
+h6 {
+    font-size: 1.1rem;
+}
+
+.comments {
+    margin-bottom: 20px;
+}
+
+.comments .comment {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+@media (max-width: 720px) {
+    .sidebar {
+        height: auto;
+        max-width: 100%;
+        min-width: 100%;
+    }
+
+    #app {
+        flex-direction: column !important;
+    }
+
+    .main {
+        background-color:white;
+        z-index:100;
+    }
+}

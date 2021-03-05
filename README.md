@@ -18,7 +18,7 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 ```
 git pull \
 	&& cp -rf /mnt/nas/ftr/blog.ntfrex.com/ntfrex.com.pfx ./NtFreX.Blog \
-	&& docker build -f "./NtFreX.Blog/Dockerfile" --force-rm -t ntfrexblog "./NtFreX.Blog" \
+	&& docker build -f "./Dockerfile" --force-rm -t ntfrexblog "./" \
 	&& sudo systemctl restart blog \
 	&& sudo journalctl -u blog -f -n 10
 ```

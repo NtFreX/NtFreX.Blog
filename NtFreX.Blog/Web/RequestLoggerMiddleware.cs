@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using NtFreX.Blog.Data;
-using NtFreX.Blog.Model;
+using NtFreX.Blog.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,8 +21,12 @@ namespace NtFreX.Blog.Web
             this.next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, Database database)
+        public async Task InvokeAsync(HttpContext context, Database database, IHostEnvironment hostEnvironment)
         {
+            var original = context.Response.Body;
+            using var tmp = new MemoryStream();
+            context.Response.Body = tmp;
+
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             await next.Invoke(context);
@@ -41,16 +46,20 @@ namespace NtFreX.Blog.Web
                 System = "NtFrex.Blog",
                 Path = context.Request.Path,
                 Method = context.Request.Method,
-                Body = await ReadBodyAsync(context),
+                Body = await ReadBodyAsync(context, tmp, original),
                 RequestHost = context.Request.Host.Value,
-                RequestScheme = context.Request.Scheme
+                RequestScheme = context.Request.Scheme,
+                Environment = hostEnvironment.EnvironmentName
             });
         }
 
-        private async Task<string> ReadBodyAsync(HttpContext context)
+        private async Task<string> ReadBodyAsync(HttpContext context, Stream tmp, Stream original)
         {
-            using var reader = new StreamReader(context.Request.Body);
-            return await reader.ReadToEndAsync();
+            tmp.Seek(0, SeekOrigin.Begin);
+            var bodyText = await new StreamReader(context.Response.Body).ReadToEndAsync(); 
+            tmp.Seek(0, SeekOrigin.Begin);
+            await tmp.CopyToAsync(original);
+            return bodyText;
         }
 
         private string ToJson(IHeaderDictionary headers)
@@ -138,7 +147,10 @@ namespace NtFreX.Blog.Web
             "/console/",
             "/api/jsonws/invoke",
             "/asset-manifest.json",
-            "/cgi-bin/config.exp"
+            "/cgi-bin/config.exp",
+            "//a2billing/customer/templates/default/footer.tpl",
+            "/wp-admin/setup-config.php",
+            "/wp-admin/install.php"
         };
     }
 }

@@ -7,7 +7,7 @@ using MongoDB.Driver;
 using NtFreX.Blog.Auth;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
-using NtFreX.Blog.Model;
+using NtFreX.Blog.Models;
 
 namespace NtFreX.Blog.Web
 {

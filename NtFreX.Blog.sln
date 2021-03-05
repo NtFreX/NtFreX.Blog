@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog", "NtFreX.Blog\NtFreX.Blog.csproj", "{BC5796D0-AB4E-4DEB-9959-8A6D639B5566}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtFreX.Blog.Client", "NtFreX.Blog.Client\NtFreX.Blog.Client.csproj", "{CF5192EE-7AEF-4F5F-ADB6-C939511D182A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtFreX.Blog.Models", "NtFreX.Blog.Models\NtFreX.Blog.Models.csproj", "{760302EB-323D-4C7D-9A27-E02107212C0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{BC5796D0-AB4E-4DEB-9959-8A6D639B5566}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC5796D0-AB4E-4DEB-9959-8A6D639B5566}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC5796D0-AB4E-4DEB-9959-8A6D639B5566}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF5192EE-7AEF-4F5F-ADB6-C939511D182A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF5192EE-7AEF-4F5F-ADB6-C939511D182A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF5192EE-7AEF-4F5F-ADB6-C939511D182A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF5192EE-7AEF-4F5F-ADB6-C939511D182A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{760302EB-323D-4C7D-9A27-E02107212C0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{760302EB-323D-4C7D-9A27-E02107212C0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{760302EB-323D-4C7D-9A27-E02107212C0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{760302EB-323D-4C7D-9A27-E02107212C0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

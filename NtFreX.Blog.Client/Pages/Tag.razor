@@ -1,0 +1,12 @@
+﻿@page "/Tag"
+
+<NavLink href="@($"/{Base64UrlEncodedName}")" class="tag">
+    <span>@Name</span>
+</NavLink>
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+
+    public string Base64UrlEncodedName => WebHelper.Base64UrlEncode(Name);
+}

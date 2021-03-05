@@ -1,0 +1,128 @@
+﻿@page "/article/{id}"
+
+@inject HttpClient Http
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+
+@if (article == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <Title Value='@($"NTFREX'S SPACE - {article.Title}")' />
+
+    <div class="card">
+        <div class="card-body">
+            <NavLink href="" Match="NavLinkMatch.All"><span>Home</span></NavLink> - <span>@article.Title</span>
+        </div>
+    </div>
+
+    <div class="card article">
+        <div class="card-body">
+            <div style="height:52px;">
+                <h3 class="card-title" style="float:left;">@article.Title</h3>
+                @if (isAdmin)
+                {
+                    <NavLink href="@($"/edit/{article.Id}")" style="float: right;">
+                        <button type="button" class="btn btn-primary">Edit</button>
+                    </NavLink>
+                }
+            </div>
+
+            <div>
+                <h4 class="card-subtitle mb-2 text-muted">@article.Date.ToShortDateString() @article.Subtitle</h4>
+            </div>
+
+            <div id="content">
+                @(new MarkupString(article.Content))
+            </div>
+
+            <div>
+                @if (tags != null)
+                {
+                    @foreach (var tag in tags)
+                    {
+                        <Tag Name="@tag.Name" />
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="card comments">
+        <div class="card-body">
+            <h5 class="card-title">Comments</h5>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 style="margin:4px;" class="card-title">Add Comment</h5>
+                    <div style="margin: 4px;"><span style="width: 20%; display: block; float: left;">Title</span><input style="width: 80%;" @bind="newComment.Title" /></div>
+                    <div style="margin: 4px;"><span style="width: 20%; display: block; float: left;">User</span><input style="width: 80%;" @bind="newComment.User" /></div>
+                    <div style="margin: 4px;"><textarea style="width: 100%;" rows="3" @bind="newComment.Content"></textarea></div>
+                    <button type="button" class="btn btn-primary" style="float:right; margin:4px;" @onclick="@InsertCommentAsync">Save</button>
+                </div>
+            </div>
+
+            @foreach (var comment in comments)
+            {
+                <div class="card comment">
+                    <div class="card-body">
+                        <h5 class="card-title">@comment.Title</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">@comment.Date.ToShortDateString() @comment.Date.ToShortTimeString() @comment.User</h6>
+                        <p>@comment.Content</p>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Popular articles from this blog</h5>
+
+            @foreach (var topArticle in topArticles)
+            {
+                <ArticlePreview Article="@topArticle.Article" Tags="@allTags" IsAdmin="@isAdmin" Visits="@topArticle.VisitorCount" />
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private ArticleDto article;
+    private IReadOnlyList<ArticleWithVisitsDto> topArticles;
+    private CommentDto[] comments;
+    private TagDto[] tags;
+    private TagDto[] allTags;
+    private CreateCommentDto newComment;
+    private bool isAdmin;
+
+    [Parameter] public string Id { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        newComment = new CreateCommentDto();
+        newComment.ArticleId = Id;
+        topArticles = await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/topTreeWithVisitorCount/{Id}");
+        article = await Http.GetFromJsonAsync<ArticleDto>($"/api/article/{Id}");
+        comments = await Http.GetFromJsonAsync<CommentDto[]>($"/api/comment/byArticleId/{Id}");
+        tags = await Http.GetFromJsonAsync<TagDto[]>($"/api/tag/byArticleId/{Id}");
+        allTags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag");
+        isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"));
+
+        await Http.GetAsync($"/api/article/visit/{Id}");
+    }
+
+    private async Task InsertCommentAsync()
+    {
+        if (string.IsNullOrEmpty(newComment.Content) && string.IsNullOrEmpty(newComment.Title))
+            return;
+
+        await Http.PostAsJsonAsync("/api/comment", newComment);
+
+        await OnParametersSetAsync();
+    }
+} 

@@ -1,0 +1,56 @@
+﻿@page "/edit/{id}"
+
+@inject HttpClient Http
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+
+@if (article != null)
+{
+    <Title Value='@($"NTFREX'S SPACE - {article.Title}")' />
+    <div style="display:flex; flex-direction: @flexDirection;height: 100vh; margin-top: -1.1rem;">
+        <div>
+            <div><span style="width: 20%; display: block; float: left;">Title</span><input style="width: 80%;" @bind="article.Title" /></div>
+            <div><span style="width: 20%; display: block; float: left;">Subtitle</span><input style="width: 80%;" @bind="article.Subtitle" /></div>
+            <div><span style="width: 20%; display: block; float: left;">Date</span><input style="width: 80%;" @bind="article.Date" /></div>
+            <div><span style="width: 20%; display: block; float: left;">Tags</span><input style="width: 80%;" @bind="tags" /></div>
+            <div><span style="width: 20%; display: block; float: left;">Published</span><input type="checkbox" style="width: 80%;" @bind="article.Published" /></div>
+            <div><textarea style="resize:both; min-width:400px;" rows="3" @bind="article.Content"></textarea></div>
+            <div>
+                <button type="button" class="btn btn-primary" style="float:right; margin-left: 8px;" @onclick="@UpdateArticleAsync">Save</button>
+                <NavLink href="@($"/article/{article.Id}")" style="float:right;">
+                    <button type="button" class="btn btn-primary">Exit</button>
+                </NavLink>
+                <button type="button" class="btn btn-primary" style="float:left;" @onclick="@ToggleFlexDirection">Toggle layout</button>
+            </div>
+        </div>
+        <div style="overflow: auto; flex-grow: 1;">
+            @((MarkupString)article.Content)
+        </div>
+    </div>
+}
+
+@code {
+    private ArticleDto article;
+    private string tags;
+    private string flexDirection = "row";
+
+    [Parameter] public string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        article = await Http.GetFromJsonAsync<ArticleDto>($"/api/article/{Id}");
+        var tagModels = await Http.GetFromJsonAsync<TagDto[]>($"/api/tag/byArticleId/{Id}");
+        tags = string.Join(", ", tagModels.Select(x => x.Name));
+    }
+
+    public void ToggleFlexDirection()
+    {
+        flexDirection = flexDirection == "row" ? "column" : "row";
+    }
+
+    public async Task UpdateArticleAsync()
+    {
+        var tagList = tags.Split(",").Select(x => x.TrimEnd(' ').TrimStart(' ')).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+
+        await Http.PutAsJsonAsync("/api/article", new SaveArticleDto { Article = article, Tags = tagList });
+    }
+}

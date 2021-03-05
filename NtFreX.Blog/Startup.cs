@@ -24,11 +24,12 @@ namespace NtFreX.Blog
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var metrics = AppMetrics.CreateDefaultBuilder().Build();
-
+            services.AddResponseCaching();
             services.AddResponseCompression();
+
             services.AddHttpContextAccessor();
 
+            var metrics = AppMetrics.CreateDefaultBuilder().Build();
             services.AddMetrics(metrics);
             services.AddMetricsTrackingMiddleware();
 
@@ -45,17 +46,22 @@ namespace NtFreX.Blog
             {
                 options.HttpsPort = int.Parse(Configuration["Listeners:Ports:HTTPS"]);
             });
-            services.AddResponseCaching();
+
+            services.AddControllersWithViews();
             services.AddRazorPages(options =>
             {
                 options.Conventions.AuthorizeFolder("/Private", AuthorizationPolicyNames.OnlyFromLocal);
             });
-            services.AddServerSideBlazor();
+
             services.AddTransient<ArticleService>();
             services.AddTransient<CommentService>();
             services.AddTransient<TagService>();
-            services.AddTransient<Database>();
 
+
+            services.AddTransient<Database>();
+            services.AddTransient<ArticleRepository>();
+            services.AddTransient<TagRepository>();
+            services.AddTransient<VisitorRepository>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -66,6 +72,7 @@ namespace NtFreX.Blog
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseWebAssemblyDebugging();
             }
             else
             {
@@ -75,19 +82,15 @@ namespace NtFreX.Blog
 
             app.UseMetricsAllMiddleware();
             app.UseHttpsRedirection();
+            app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthorization();
             app.UseResponseCaching();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
-                   name: "default",
-                   pattern: "{controller}/{action}");
-
+                endpoints.MapRazorPages();
                 endpoints.MapControllers();
-
-                endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

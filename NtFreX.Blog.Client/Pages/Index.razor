@@ -1,0 +1,64 @@
+﻿@page "/"
+@page "/{tag}"
+
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+
+<Title Value="NTFREX'S SPACE" />
+
+<div class="top-row">
+    <h2>NtFreX's space</h2>
+    <span>A small blog about programming and stuff.</span>
+
+    @if (!string.IsNullOrEmpty(Tag))
+    {
+        <h6 style="margin-top: 8px; font-style: italic; color: gray;">Displaying articles with the label '@(WebHelper.Base64UrlDecode(Tag))'</h6>
+        <NavLink href="" Match="NavLinkMatch.All">
+            <span>Clear filter</span>
+        </NavLink>
+    }
+
+    @if (isAdmin)
+    {
+        <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:50px;" @onclick="@CreateArticleAsync">Create</button>
+    }
+</div>
+
+@if (articles == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @foreach (var article in articles)
+    {
+        <ArticlePreview Article="@article.Article" Tags="@tags" IsAdmin="@isAdmin" Visits="@article.VisitorCount" />
+    }
+}
+
+@code {
+    private IReadOnlyList<ArticleWithVisitsDto> articles;
+    private TagDto[] tags;
+    private bool isAdmin;
+
+    [Parameter] public string Tag { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"));
+        articles = string.IsNullOrEmpty(Tag)
+            ? await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>("/api/article/withVisitorCount")
+            : await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/byTagWithVisitorCount/{Tag}");
+        tags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag");
+    }
+
+    public async Task CreateArticleAsync()
+    {
+        var id = await Http.PostAsync("/api/article", null);
+        navigationManager.NavigateTo($"/edit/{id}");
+    }
+}

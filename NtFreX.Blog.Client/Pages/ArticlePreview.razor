@@ -1,0 +1,52 @@
+﻿@page "/ArticlePreview"
+
+@using NtFreX.Blog.Models
+
+@inject HttpClient Http
+
+<NavLink class="nav-link article-preview" href="@($"article/{Article.Id}")">
+    <div class="card">
+        <div class="card-body">
+            @if (!Article.IsPublished())
+            {
+                <span class="alert-warning">Unpublished</span>
+            }
+
+            @if (IsAdmin)
+            {
+                <div style="float:right;">
+                    <span>@Visits visits</span>
+
+                    <NavLink href="@($"/edit/{Article.Id}")">
+                        <button type="button" class="btn btn-primary">Edit</button>
+                    </NavLink>
+                </div>
+            }
+
+            <h5 class="card-title">@Article.Title</h5>
+            <h6 class="card-subtitle mb-2 text-muted">@Article.Date.ToShortDateString() @Article.Subtitle</h6>
+
+            @if (Tags != null)
+            {
+                @foreach (var tag in Tags.Where(d => d.ArticleId == Article.Id))
+                {
+                    <Tag Name="@tag.Name" />
+                }
+            }
+        </div>
+    </div>
+</NavLink>
+
+@code {
+    [Parameter]
+    public ArticleDto Article { get; set; }
+
+    [Parameter]
+    public bool IsAdmin { get; set; }
+
+    [Parameter]
+    public long Visits { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<TagDto> Tags { get; set; }
+}

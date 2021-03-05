@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using NtFreX.Blog.Services;
+using NtFreX.Blog.Data;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -7,11 +7,11 @@ namespace NtFreX.Blog.Web
 {
     public class SitemapController : ControllerBase
     {
-        private readonly ArticleService articleService;
+        private readonly ArticleRepository articleRepository;
 
-        public SitemapController(ArticleService articleService)
+        public SitemapController(ArticleRepository articleRepository)
         {
-            this.articleService = articleService;
+            this.articleRepository = articleRepository;
         }
 
         [Route("/sitemap.xml")]
@@ -25,7 +25,7 @@ namespace NtFreX.Blog.Web
             
 
             await WriteUrlElementAsync(host);
-            foreach(var article in await articleService.GetAllArticlesAsync(false))
+            foreach(var article in await articleRepository.GetAllArticlesAsync(includeUnpublished: false))
             {
                 await WriteUrlElementAsync($"{ host}/article/{article.Id}");
             }
