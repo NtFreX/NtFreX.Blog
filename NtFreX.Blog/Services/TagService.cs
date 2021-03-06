@@ -29,20 +29,29 @@ namespace NtFreX.Blog.Services
             await cache.RemoveAsync(CacheKeys.AllDistinctTags);
             await cache.RemoveAsync(CacheKeys.AllPublishedTags);
             await cache.RemoveAsync(CacheKeys.AllDistinctPublishedTags);
+            await cache.RemoveAsync(CacheKeys.AllTags);
+            await cache.RemoveAsync(CacheKeys.TagsByArticleId(model.Article.Id));
         }
+
 
         public async Task<IReadOnlyList<TagDto>> GetAllTagsAsync(bool includeUnpublished)
         {
-            var tags = await tagRepository.GetAllTagsAsync();
-            if (includeUnpublished)
-                return tags;
-
-            return await cache.CacheAsync(CacheKeys.AllPublishedTags, CacheKeys.TimeToLive, async () =>
+            return await cache.CacheAsync(includeUnpublished ? CacheKeys.AllTags : CacheKeys.AllPublishedTags, CacheKeys.TimeToLive, async () =>
             {
-                var articles = await articleRepository.GetAllArticlesAsync(includeUnpublished);
+                var tags = await tagRepository.FindAsync();
+                if (includeUnpublished)
+                    return tags;
+
+                var articles = await articleRepository.FindAsync(includeUnpublished);
                 return tags.Where(x => articles.Any(article => article.Id == x.ArticleId)).ToList();
             });
         }
+
+        public async Task<IReadOnlyList<TagDto>> GetTagsByArticleIdAsync(string articleId)
+            => await cache.CacheAsync(
+                CacheKeys.TagsByArticleId(articleId), 
+                CacheKeys.TimeToLive, 
+                () => tagRepository.FindAsync(articleId));
 
         public async Task<IReadOnlyList<string>> GetAllDistinctTagsAsync(bool includeUnpublished)
         {

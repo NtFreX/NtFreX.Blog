@@ -53,5 +53,8 @@ namespace NtFreX.Blog.Models
 
         [BsonElement("environment", Order = 15)]
         public string Environment { get; set; }
+
+        [BsonElement("request_query_string", Order = 16)]
+        public string RequestQueryString { get; set; }
     }
 }

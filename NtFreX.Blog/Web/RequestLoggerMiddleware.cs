@@ -23,9 +23,11 @@ namespace NtFreX.Blog.Web
 
         public async Task InvokeAsync(HttpContext context, Database database, IHostEnvironment hostEnvironment)
         {
-            var original = context.Response.Body;
-            using var tmp = new MemoryStream();
-            context.Response.Body = tmp;
+            //var original = context.Response.Body;
+            //using var tmp = new MemoryStream();
+            //context.Response.Body = tmp;
+
+            var requestBody = await ReadRequestBodyAsync(context);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -35,32 +37,49 @@ namespace NtFreX.Blog.Web
             var request = database.Monitoring.GetCollection<RequestModel>("request");
             await request.InsertOneAsync(new RequestModel
             {
-                Date = DateTime.UtcNow,
-                RemoteIp = context.Connection.RemoteIpAddress.ToString(),
-                RequestHeader = ToJson(context.Request.Headers),
-                StatusCode = context.Response.StatusCode,
-                Success = IsSuccesStatusCode(context.Response.StatusCode.ToString()) || (Exceptions.TryGetValue(context.Request.Path, out var statusCode) && statusCode == context.Response.StatusCode),
-                IsAttack = Vulnerabilities.Any(x => x == context.Request.Path),
-                LatencyInMs = stopwatch.ElapsedMilliseconds,
+                Date = DateTime.UtcNow,                
                 Host = Environment.MachineName,
                 System = "NtFrex.Blog",
+                Environment = hostEnvironment.EnvironmentName,
+
+                //Body = await ReadBodyAsync(context, tmp, original),
+                StatusCode = context.Response.StatusCode,
+                Success = IsSuccesStatusCode(context.Response.StatusCode.ToString()) || (Exceptions.TryGetValue(context.Request.Path, out var statusCode) && statusCode == context.Response.StatusCode),
+                LatencyInMs = stopwatch.ElapsedMilliseconds,
+
+                RemoteIp = context.Connection.RemoteIpAddress.ToString(),
+                IsAttack = Vulnerabilities.Any(x => x == context.Request.Path),
+
                 Path = context.Request.Path,
                 Method = context.Request.Method,
-                Body = await ReadBodyAsync(context, tmp, original),
+                Body = requestBody,
+                RequestHeader = ToJson(context.Request.Headers),
                 RequestHost = context.Request.Host.Value,
+                RequestQueryString = context.Request.QueryString.ToString(),
                 RequestScheme = context.Request.Scheme,
-                Environment = hostEnvironment.EnvironmentName
             });
         }
 
-        private async Task<string> ReadBodyAsync(HttpContext context, Stream tmp, Stream original)
+        private async Task<string> ReadRequestBodyAsync(HttpContext context)
         {
-            tmp.Seek(0, SeekOrigin.Begin);
-            var bodyText = await new StreamReader(context.Response.Body).ReadToEndAsync(); 
-            tmp.Seek(0, SeekOrigin.Begin);
-            await tmp.CopyToAsync(original);
-            return bodyText;
+            context.Request.EnableBuffering();
+
+            using var reader = new StreamReader(context.Request.Body);
+            var content = await reader.ReadToEndAsync();
+
+            context.Request.Body.Seek(0, SeekOrigin.Begin);
+
+            return content;
         }
+
+        //private async Task<string> ReadBodyAsync(HttpContext context, Stream tmp, Stream original)
+        //{
+        //    tmp.Seek(0, SeekOrigin.Begin);
+        //    var bodyText = await new StreamReader(context.Response.Body).ReadToEndAsync(); 
+        //    tmp.Seek(0, SeekOrigin.Begin);
+        //    await tmp.CopyToAsync(original);
+        //    return bodyText;
+        //}
 
         private string ToJson(IHeaderDictionary headers)
         {

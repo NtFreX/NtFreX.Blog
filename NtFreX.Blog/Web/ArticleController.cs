@@ -14,26 +14,17 @@ namespace NtFreX.Blog.Web
     [ApiController, Route("api/{controller}")]
     public class ArticleController : ControllerBase
     {
-        private readonly ArticleRepository articleRepository;
-        private readonly TagService tagService;
-        private readonly VisitorRepository visitorRepository;
         private readonly ArticleService articleService;
         private readonly AuthorizationManager authorizationManager;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly IHostEnvironment hostEnvironment;
 
         public ArticleController(
-            ArticleRepository articleRepository,
-            TagService tagService,
-            VisitorRepository visitorRepository, 
             ArticleService articleService, 
             AuthorizationManager authorizationManager, 
             IHttpContextAccessor httpContextAccessor, 
             IHostEnvironment hostEnvironment)
         {
-            this.articleRepository = articleRepository;
-            this.tagService = tagService;
-            this.visitorRepository = visitorRepository;
             this.articleService = articleService;
             this.authorizationManager = authorizationManager;
             this.httpContextAccessor = httpContextAccessor;
@@ -46,13 +37,13 @@ namespace NtFreX.Blog.Web
             if (hostEnvironment.IsDevelopment())
                 return;
 
-            await visitorRepository.VisitArticleAsync(articleId, httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString(), httpContextAccessor.HttpContext.Request.Headers["User-Agent"]);
+            await articleService.VisitArticleAsync(articleId, httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString(), httpContextAccessor.HttpContext.Request.Headers["User-Agent"]);
         }
 
         // TODO: exclude own visits
         [HttpGet("visitorCount/{articleId}")]
         public async Task<long> GetVisitorCountAsync(string articleId)
-            => await visitorRepository.CountVisitorsAsync(articleId);
+            => await articleService.CountVisitorsAsync(articleId);
 
         [HttpGet("topTree/{excludeId}")]
         public async Task<IReadOnlyList<ArticleDto>> GetTopTreeAsync(string excludeId)
@@ -72,7 +63,7 @@ namespace NtFreX.Blog.Web
         
         [HttpGet]
         public async Task<IReadOnlyList<ArticleDto>> GetAllArticlesAsync()
-            => await articleRepository.GetAllArticlesAsync(authorizationManager.IsAdmin());
+            => await articleService.GetAllArticlesAsync(authorizationManager.IsAdmin());
 
         [HttpGet("withVisitorCount")]
         public async Task<IReadOnlyList<ArticleWithVisitsDto>> GetAllArticlesWithVisitorCountAsync()
@@ -81,7 +72,7 @@ namespace NtFreX.Blog.Web
         [HttpGet("{articleId}")]
         public async Task<ArticleDto> GetArticleByIdAsync(string articleId)
         {
-            var item = await articleRepository.GetArticleByIdAsync(articleId);
+            var item = await articleService.GetArticleByIdAsync(articleId);
             if (!item.IsPublished() && !authorizationManager.IsAdmin())
                 throw new UnauthorizedAccessException();
 
@@ -94,7 +85,7 @@ namespace NtFreX.Blog.Web
             if (!authorizationManager.IsAdmin())
                 throw new UnauthorizedAccessException();
 
-            return await articleRepository.CreateArticleAsync();
+            return await articleService.CreateArticleAsync();
         }
 
         [HttpPut]
@@ -103,9 +94,7 @@ namespace NtFreX.Blog.Web
             if (!authorizationManager.IsAdmin())
                 throw new UnauthorizedAccessException();
 
-            // TODO: because article service needs to load the old tags this line needs to be first. fix this 
-            await articleService.SaveArticleAsync(model);
-            await tagService.UpdateTagsForArticelAsync(model);
+            await articleService.SaveArticleAsync(model); 
         }
     }
 }

@@ -13,15 +13,13 @@ namespace NtFreX.Blog.Data
     public class VisitorRepository
     {
         private readonly IMongoCollection<VisitorModel> visitor;
-        private readonly IDistributedCache cache;
 
-        public VisitorRepository(Database database, IDistributedCache cache)
+        public VisitorRepository(Database database)
         {
             visitor = database.Blog.GetCollection<VisitorModel>("visitor");
-            this.cache = cache;
         }
 
-        public async Task VisitArticleAsync(string id, string remoteIp, string userAgent)
+        public async Task InsertAsync(string id, string remoteIp, string userAgent)
         {
             var model = new VisitorModel
             {
@@ -31,17 +29,12 @@ namespace NtFreX.Blog.Data
                 UserAgent = userAgent
             };
             await visitor.InsertOneAsync(model);
-
-            await cache.RemoveAsync(CacheKeys.VisitorsByArticleId(id));
         }
 
-        public async Task<long> CountVisitorsAsync(string id)
+        public async Task<long> CountAsync(string id)
         {
-            return await cache.CacheAsync(CacheKeys.VisitorsByArticleId(id), CacheKeys.TimeToLive, async () =>
-            {
-                var items = await visitor.Find(Builders<VisitorModel>.Filter.Eq(d => d.Article, id)).ToListAsync();
-                return items.Count(d => string.IsNullOrEmpty(d.RemoteIp) || !IPAddress.IsLoopback(IPAddress.Parse(d.RemoteIp)));
-            });
+            var items = await visitor.Find(Builders<VisitorModel>.Filter.Eq(d => d.Article, id)).ToListAsync();
+            return items.Count(d => string.IsNullOrEmpty(d.RemoteIp) || !IPAddress.IsLoopback(IPAddress.Parse(d.RemoteIp)));
         }
     }
 }
