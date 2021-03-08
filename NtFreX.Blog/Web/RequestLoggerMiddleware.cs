@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace NtFreX.Blog.Web
@@ -34,6 +33,8 @@ namespace NtFreX.Blog.Web
             await next.Invoke(context);
             stopwatch.Stop();
 
+            var vulnerabilityCheck = VulnerabilityManager.Instance.CheckRequest(context.Request, context.Response, requestBody);
+
             var request = database.Monitoring.GetCollection<RequestModel>("request");
             await request.InsertOneAsync(new RequestModel
             {
@@ -44,11 +45,13 @@ namespace NtFreX.Blog.Web
 
                 //Body = await ReadBodyAsync(context, tmp, original),
                 StatusCode = context.Response.StatusCode,
-                Success = IsSuccesStatusCode(context.Response.StatusCode.ToString()) || (Exceptions.TryGetValue(context.Request.Path, out var statusCode) && statusCode == context.Response.StatusCode),
+                Success = vulnerabilityCheck.IsVulnerability 
+                    ? !vulnerabilityCheck.HasFailed 
+                    : IsSuccesStatusCode(context.Response.StatusCode.ToString()) || (Exceptions.TryGetValue(context.Request.Path, out var statusCode) && statusCode == context.Response.StatusCode),
                 LatencyInMs = stopwatch.ElapsedMilliseconds,
 
                 RemoteIp = context.Connection.RemoteIpAddress.ToString(),
-                IsAttack = Vulnerabilities.Any(x => x == context.Request.Path),
+                IsAttack = vulnerabilityCheck.IsVulnerability,
 
                 Path = context.Request.Path,
                 Method = context.Request.Method,
@@ -102,74 +105,6 @@ namespace NtFreX.Blog.Web
             { "/rss.xml", 404 },
             { "/humans.txt", 404 },
             { "/ads.txt", 404 },
-        };
-
-        private static string[] Vulnerabilities = new string[]
-        {
-            "/owa/auth/logon.aspx",
-            "/owa/auth/signin.aspx",
-            "/owa/auth/login.aspx",
-            "//admin/config.php",
-            "//xmlrpc.php",
-            "/SQLite/main.php",
-            "/SQLiteManager-1.2.4/main.php",
-            "/SQLiteManager/main.php",
-            "/admin.php",
-            "/admin//config.php",
-            "/administrator/index.php",
-            "/agSearch/SQlite/main.php",
-            "/blog/wp-login.php",
-            "/composer.json",
-            "/dup-installer/main.installer.php",
-            "/index.php",
-            "/main.php",
-            "/sqlite/main.php",
-            "/test/sqlite/SQLiteManager-1.2.0/SQLiteManager-1.2.0/main.php",
-            "/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php",
-            "/vtigercrm/vtigerservice.php",
-            "/wordpress/wp-login.php",
-            "/wp-content/plugins/super-interactive-maps/sim-wp-admin/pages/import.php",
-            "/wp-content/plugins/superlogoshowcase-wp/sls-wp-admin/pages/import.php",
-            "/wp-content/plugins/superstorefinder-wp/ssf-wp-admin/pages/import.php",
-            "/wp-login.php",
-            "/wp/wp-login.php",
-            "//2018/wp-includes/wlwmanifest.xml",
-            "//2019/wp-includes/wlwmanifest.xml",
-            "//2020/wp-includes/wlwmanifest.xml",
-            "//blog/wp-includes/wlwmanifest.xml",
-            "//cms/wp-includes/wlwmanifest.xml",
-            "//media/wp-includes/wlwmanifest.xml",
-            "//news/wp-includes/wlwmanifest.xml",
-            "//shop/wp-includes/wlwmanifest.xml",
-            "//site/wp-includes/wlwmanifest.xml",
-            "//sito/wp-includes/wlwmanifest.xml",
-            "//test/wp-includes/wlwmanifest.xml",
-            "//web/wp-includes/wlwmanifest.xml",
-            "//website/wp-includes/wlwmanifest.xml",
-            "//wordpress/wp-includes/wlwmanifest.xml",
-            "//wp-includes/wlwmanifest.xml",
-            "//wp/wp-includes/wlwmanifest.xml",
-            "//wp1/wp-includes/wlwmanifest.xml",
-            "//wp2/wp-includes/wlwmanifest.xml",
-            "/wp-content/",
-            "/wp-content/plugins/wp-file-manager/readme.txt",
-            "/.env",
-            "//login_sid.lua",
-            "/Autodiscover/Autodiscover.xml",
-            "/mifs/.;/services/LogService",
-            "/HNAP1/",
-            "/Telerik.Web.UI.WebResource.axd",
-            "/administrator/",
-            "/admin",
-            "/admin/",
-            "/login",
-            "/console/",
-            "/api/jsonws/invoke",
-            "/asset-manifest.json",
-            "/cgi-bin/config.exp",
-            "//a2billing/customer/templates/default/footer.tpl",
-            "/wp-admin/setup-config.php",
-            "/wp-admin/install.php"
         };
     }
 }
