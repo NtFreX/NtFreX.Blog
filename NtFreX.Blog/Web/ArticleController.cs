@@ -5,6 +5,7 @@ using NtFreX.Blog.Auth;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Models;
 using NtFreX.Blog.Services;
+using NtFreX.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

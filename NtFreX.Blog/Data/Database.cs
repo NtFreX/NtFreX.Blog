@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
+using NtFreX.ConfigFlow.DotNet;
 
 namespace NtFreX.Blog.Data
 {
@@ -8,11 +8,11 @@ namespace NtFreX.Blog.Data
         public IMongoDatabase Blog { get; }
         public IMongoDatabase Monitoring { get; }
 
-        public Database(IConfiguration configuration)
+        public Database(ConfigLoader config)
         {
-            var client = new MongoClient(configuration.GetConnectionString("MongoDb"));
-            Blog = client.GetDatabase("blog");
-            Monitoring = client.GetDatabase("monitoring");
+            var client = new MongoClient(config.Get(ConfigNames.MongoDbConnectionString));
+            Blog = client.GetDatabase(config.Get(ConfigNames.BlogDatabase));
+            Monitoring = client.GetDatabase(config.Get(ConfigNames.MonitoringDatabase));
         }
     }
 }

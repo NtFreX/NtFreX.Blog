@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3E4611A4-17B
 		.gitignore = .gitignore
 		Dockerfile = Dockerfile
 		NtFreX.Blog.postman_collection.json = NtFreX.Blog.postman_collection.json
+		nuget.config = nuget.config
 		README.md = README.md
 	EndProjectSection
 EndProject

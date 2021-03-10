@@ -8,8 +8,8 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
 WORKDIR /src
 COPY . .
+COPY "./nuget" "/nuget"
 
-RUN dotnet restore "./NtFreX.Blog/NtFreX.Blog.csproj"
 RUN dotnet build "./NtFreX.Blog/NtFreX.Blog.csproj" -c Release -o /app/build
 
 FROM build AS publish

@@ -2,10 +2,8 @@ This is the source code of my blog. See it live here: https://ntfrex.com
 
 **Dependencies**
 
-Can be configured in the app settings.
-
- - Redis: ubuntu-one
- - MongoDb: mongodb://ubuntu-one:27017,ubuntu-one:27018,ubuntu-one:27019/?replicaSet=rs0
+ - Redis
+ - MongoDb
 
 **Build and run localy**
 
@@ -18,6 +16,7 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 ```
 git pull \
 	&& cp -rf /mnt/nas/ftr/blog.ntfrex.com/ntfrex.com.pfx ./NtFreX.Blog \
+	&& sudo rm -r nuget/ && sudo cp -r /mnt/nas/ftr/nuget ./nuget &&
 	&& docker build -f "./Dockerfile" --force-rm -t ntfrexblog "./" \
 	&& sudo systemctl restart blog \
 	&& sudo journalctl -u blog -f -n 10

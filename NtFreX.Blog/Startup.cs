@@ -15,9 +15,12 @@ namespace NtFreX.Blog
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly string redisConnectionString;
+
+        public Startup(IConfiguration configuration, string redisConnectionString)
         {
             Configuration = configuration;
+            this.redisConnectionString = redisConnectionString;
         }
 
         public IConfiguration Configuration { get; }
@@ -35,7 +38,7 @@ namespace NtFreX.Blog
 
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = Configuration.GetConnectionString("Redis");
+                options.Configuration = redisConnectionString;
             });
 
             services.AddAuthorization(options => options.AddPolicy(AuthorizationPolicyNames.OnlyFromLocal, configure => configure.AddRequirements(new OnlyFromLocalAuthorizationRequirement())));
