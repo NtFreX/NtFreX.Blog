@@ -5,9 +5,18 @@ VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog", "NtFreX.Blog\NtFreX.Blog.csproj", "{BC5796D0-AB4E-4DEB-9959-8A6D639B5566}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtFreX.Blog.Client", "NtFreX.Blog.Client\NtFreX.Blog.Client.csproj", "{CF5192EE-7AEF-4F5F-ADB6-C939511D182A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Client", "NtFreX.Blog.Client\NtFreX.Blog.Client.csproj", "{CF5192EE-7AEF-4F5F-ADB6-C939511D182A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtFreX.Blog.Models", "NtFreX.Blog.Models\NtFreX.Blog.Models.csproj", "{760302EB-323D-4C7D-9A27-E02107212C0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Models", "NtFreX.Blog.Models\NtFreX.Blog.Models.csproj", "{760302EB-323D-4C7D-9A27-E02107212C0C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3E4611A4-17BD-4BC9-8BE8-293D3AE61AFD}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.gitignore = .gitignore
+		Dockerfile = Dockerfile
+		NtFreX.Blog.postman_collection.json = NtFreX.Blog.postman_collection.json
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -67,7 +67,7 @@ namespace NtFreX.Blog.Web
         {
             context.Request.EnableBuffering();
 
-            using var reader = new StreamReader(context.Request.Body);
+            using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
             var content = await reader.ReadToEndAsync();
 
             context.Request.Body.Seek(0, SeekOrigin.Begin);

@@ -21,7 +21,7 @@ namespace NtFreX.Blog.Web
             => await commentService.GetCommentsByArticleIdAsync(articleId);
 
         [HttpPost()]
-        public async Task InsertCommentAsync(CreateCommentDto model)
+        public async Task InsertCommentAsync([FromBody] CreateCommentDto model)
             => await commentService.InsertCommentAsync(model);
     }
 }
