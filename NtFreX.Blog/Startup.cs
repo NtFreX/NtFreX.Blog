@@ -9,7 +9,8 @@ using Microsoft.Extensions.Hosting;
 using NtFreX.Blog.Auth;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Services;
-using NtFreX.Blog.Web;
+using NtFreX.ConfigFlow.DotNet;
+using NtFreX.Core.Web;
 
 namespace NtFreX.Blog
 {
@@ -67,10 +68,10 @@ namespace NtFreX.Blog
             services.AddTransient<VisitorRepository>();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ConfigLoader config)
         {
             app.UseResponseCompression();
-            app.UseMiddleware<RequestLoggerMiddleware>();
+            app.UseRequestLogger(config.Get(ConfigNames.MongoDbConnectionString), config.Get(ConfigNames.MonitoringDatabase), Program.ClientId);
 
             if (env.IsDevelopment())
             {

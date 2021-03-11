@@ -17,6 +17,7 @@
     <PackageReference Include="MongoDB.Driver" Version="2.11.6" />
     <PackageReference Include="NtFreX.ConfigFlow.DotNet" Version="1.0.0" />
     <PackageReference Include="NtFreX.Core" Version="1.0.0" />
+    <PackageReference Include="NtFreX.Core.Web" Version="1.0.0" />
     <PackageReference Include="NtFreX.Logger.DotNet" Version="1.0.0" />
   </ItemGroup>
 
