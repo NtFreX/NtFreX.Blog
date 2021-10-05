@@ -1,10 +1,13 @@
 ﻿@page "/Tag"
 
-<NavLink href="@($"/{Base64UrlEncodedName}")" class="tag">
+<NavLink href="@($"/{Base64UrlEncodedName}")" class="@("tag " + (ShowNoData ? "tag-preview" : string.Empty))">
     <span>@Name</span>
 </NavLink>
 
 @code {
+    [Parameter]
+    public bool ShowNoData { get; set; }
+
     [Parameter]
     public string Name { get; set; }
 

@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using BlazorDownloadFile;
+using Blazored.LocalStorage;
 
 namespace NtFreX.Blog.Client
 {
@@ -14,6 +16,8 @@ namespace NtFreX.Blog.Client
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddBlazorDownloadFile();
+            builder.Services.AddBlazoredLocalStorage();
 
             await builder.Build().RunAsync();
         }

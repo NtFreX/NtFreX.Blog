@@ -4,15 +4,15 @@
 
 @inject HttpClient Http
 
-<NavLink class="nav-link article-preview" href="@($"article/{Article.Id}")">
+<NavLink class="nav-link article-preview" href="@(ShowNoData ? string.Empty : $"article/{Article.Id}")">
     <div class="card">
         <div class="card-body">
-            @if (!Article.IsPublished())
+            @if (!ShowNoData && !Article.IsPublished())
             {
                 <span class="alert-warning">Unpublished</span>
             }
 
-            @if (IsAdmin)
+            @if (!ShowNoData && IsAdmin)
             {
                 <div style="float:right;">
                     <span>@Visits visits</span>
@@ -23,10 +23,16 @@
                 </div>
             }
 
-            <h5 class="card-title">@Article.Title</h5>
-            <h6 class="card-subtitle mb-2 text-muted">@Article.Date.ToShortDateString() @Article.Subtitle</h6>
+            <h5 class="@(ShowNoData ? "card-title-preview" : string.Empty) card-title">@(ShowNoData ? string.Empty : Article.Title)</h5>
+            <h6 class="@(ShowNoData ? "card-subtitle-preview" : string.Empty) card-subtitle mb-2 text-muted">@(ShowNoData ? string.Empty : Article.Date.ToShortDateString() + " " + Article.Subtitle)</h6>
 
-            @if (Tags != null)
+            @if (ShowNoData)
+            {
+                <Tag Name="" ShowNoData="true" />
+                <Tag Name="" ShowNoData="true" />
+                <Tag Name="" ShowNoData="true" />
+            }
+            else if (Tags != null)
             {
                 @foreach (var tag in Tags.Where(d => d.ArticleId == Article.Id))
                 {
@@ -37,16 +43,22 @@
     </div>
 </NavLink>
 
-@code {
-    [Parameter]
-    public ArticleDto Article { get; set; }
+    @code {
+        /// <summary>
+        /// If set to true no other parameter needs to be provided. Only the layout is rendered and data fields are left blank.
+        /// </summary>
+        [Parameter]
+        public bool ShowNoData { get; set; }
 
-    [Parameter]
-    public bool IsAdmin { get; set; }
+        [Parameter]
+        public ArticleDto Article { get; set; }
 
-    [Parameter]
-    public long Visits { get; set; }
+        [Parameter]
+        public bool IsAdmin { get; set; }
 
-    [Parameter]
-    public IReadOnlyList<TagDto> Tags { get; set; }
-}
+        [Parameter]
+        public long Visits { get; set; }
+
+        [Parameter]
+        public IReadOnlyList<TagDto> Tags { get; set; }
+    }

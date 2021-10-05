@@ -8,11 +8,11 @@ using NtFreX.Blog.Models;
 
 namespace NtFreX.Blog.Data
 {
-    public class ArticleRepository
+    public class MongoDbArticleRepository : IArticleRepository
     {
         private readonly IMongoCollection<ArticleModel> article;
 
-        public ArticleRepository(Database database)
+        public MongoDbArticleRepository(MongoDatabase database)
         {
             article = database.Blog.GetCollection<ArticleModel>("article");
         }
@@ -24,12 +24,10 @@ namespace NtFreX.Blog.Data
             return model.Id.ToString();
         }
 
-        public async Task UpdateAsync(ArticleDto model)
+        public async Task UpdateAsync(ArticleModel model)
         {
-            var articleId = new ObjectId(model.Id);
-
             await article.UpdateOneAsync(
-                Builders<ArticleModel>.Filter.Eq(d => d.Id, articleId),
+                Builders<ArticleModel>.Filter.Eq(d => d.Id, model.Id),
                 Builders<ArticleModel>.Update
                     .Set(d => d.Title, model.Title)
                     .Set(d => d.Subtitle, model.Subtitle)
@@ -38,17 +36,13 @@ namespace NtFreX.Blog.Data
                     .Set(d => d.Content, model.Content));
         }
 
-        public async Task<IReadOnlyList<ArticleDto>> FindAsync(bool includeUnpublished)
+        public async Task<IReadOnlyList<ArticleModel>> FindAsync(bool includeUnpublished)
         {
             var items = await article.Find(_ => true).ToListAsync();
-            return items.Select(x => x.ToDto()).Where(d => includeUnpublished || d.IsPublished()).OrderByDescending(d => d.Date).ToList();
+            return items.Where(d => includeUnpublished || d.ToDto().IsPublished()).OrderByDescending(d => d.Date).ToList();
         }
 
-        public async Task<ArticleDto> FindByIdAsync(string id)
-        {
-            var objectId = new ObjectId(id);
-            var dbModel = await article.Find(d => d.Id == objectId).FirstAsync();
-            return dbModel.ToDto();
-        }        
+        public async Task<ArticleModel> FindByIdAsync(string id)
+            => await article.Find(d => d.Id == id).FirstAsync();
     }
 }

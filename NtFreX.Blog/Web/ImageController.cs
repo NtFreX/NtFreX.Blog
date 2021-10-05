@@ -2,8 +2,6 @@
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
-using MongoDB.Driver;
 using NtFreX.Blog.Auth;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
@@ -14,13 +12,13 @@ namespace NtFreX.Blog.Web
     [ApiController, Route("api/[controller]")]
     public class ImageController : ControllerBase
     {
+        private readonly IImageRepository imageRepository;
         private readonly AuthorizationManager authorizationManager;
-        private readonly IDistributedCache cache;
-        private IMongoCollection<ImageModel> collection;
+        private readonly ApplicationCache cache;
 
-        public ImageController(Database database, AuthorizationManager authorizationManager, IDistributedCache cache)
+        public ImageController(IImageRepository imageRepository, AuthorizationManager authorizationManager, ApplicationCache cache)
         {
-            collection = database.Blog.GetCollection<ImageModel>("image");
+            this.imageRepository = imageRepository;
             this.authorizationManager = authorizationManager;
             this.cache = cache;
         }
@@ -29,10 +27,10 @@ namespace NtFreX.Blog.Web
         [ResponseCache(Duration = 60 * 60 * 24)]
         public async Task<ActionResult> GetAsync(string name)
         {
-            var image = await cache.CacheAsync(CacheKeys.Image(name), CacheKeys.TimeToLive, async () =>
-            {
-                return await collection.Find(d => d.Name == name).FirstAsync();
-            });
+            var image = await cache.CacheAsync(
+                CacheKeys.Image(name), 
+                CacheKeys.TimeToLive, 
+                () => imageRepository.FindByName(name));
 
             var bytes = Convert.FromBase64String(image.Data);
             var stream = new MemoryStream(bytes);
@@ -57,9 +55,8 @@ namespace NtFreX.Blog.Web
                 Type = $"image/{name.Substring(name.LastIndexOf(".") + 1)}"
             };
 
-            await collection.FindOneAndDeleteAsync(Builders<ImageModel>.Filter.Eq(x => x.Name, name));
-            await collection.InsertOneAsync(image);
-            await cache.RemoveAsync(CacheKeys.Image(name));
+            await imageRepository.InsertOrUpdate(image);
+            await cache.RemoveSaveAsync(CacheKeys.Image(name));
             return Ok();
         }
     }

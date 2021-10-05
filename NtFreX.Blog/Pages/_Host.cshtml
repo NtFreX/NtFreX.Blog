@@ -9,21 +9,45 @@
 <html lang="en">
 <head>
     <environment include="Production">
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-E6DMT54FM9"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
+        @if (Configuration.BlogConfiguration.ClientSideHttpsRedirection)
+        {
+            <script type="text/javascript">
+                if (window.location.protocol == "http:") {
+                    window.location = "https://" + window.location.host + window.location.pathname + window.location.search + window.location.hash;
+                }
+            </script>
+        }
 
-            gtag('config', 'G-E6DMT54FM9');
-        </script>
-        <meta name="google-site-verification" content="MAEgvSwMFjwJFm4j5G82JjicSuHql2MVwYxNziXk31c" />
+        @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.GoogleTagMeasurementId))
+        {
+            <!-- Global site tag (gtag.js) - Google Analytics -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=@Configuration.BlogConfiguration.GoogleTagMeasurementId"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag() { dataLayer.push(arguments); }
+                gtag('js', new Date());
+
+                gtag('config', '@Configuration.BlogConfiguration.GoogleTagMeasurementId');
+            </script>
+        }
+        @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.GoogleSiteVerification))
+        {
+            <meta name="google-site-verification" content="@Configuration.BlogConfiguration.GoogleSiteVerification" />
+        }
+
     </environment>
 
-    <title>NTFREX'S SPACE</title>
+    <title>@Configuration.BlogConfiguration.BlogTitle</title>
     <meta charset="utf-8" />
+    <meta name="description" content="@Configuration.BlogConfiguration.BlogDescription" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="
+          script-src    * 'unsafe-inline' 'unsafe-eval';
+          style-src     * data: blob: 'unsafe-inline';
+          img-src       * data: blob: 'unsafe-inline';
+          font-src      * data: blob: 'unsafe-inline';
+          connect-src   * data: blob: 'unsafe-inline';
+          " />
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="css/site.css" />
@@ -31,7 +55,9 @@
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
 </head>
 <body>
-    <div id="app">Loading...</div>
+    <div id="app">
+        <div class="loading d-flex align-items-center justify-content-center" style="width:100%;margin:30px;"><span>Loading... </span><img src="/hourglass.gif" alt="loading" /></div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
@@ -40,6 +66,28 @@
     </div>
 
     <script src="_framework/blazor.webassembly.js"></script>
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    @if (Configuration.BlogConfiguration.ServiceWorker)
+    {
+        <script>navigator.serviceWorker.register('service-worker.js');</script>
+    }
+
+    <div class="side-ad">
+        <environment include="Production">
+            @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.GoogleAdPublisherId) && !string.IsNullOrEmpty(Configuration.BlogConfiguration.GoogleAdSlotId))
+            {
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=@Configuration.BlogConfiguration.GoogleAdPublisherId"
+                        crossorigin="anonymous"></script>
+                <ins class="adsbygoogle vertical-center"
+                     style="display:block"
+                     data-ad-client="@Configuration.BlogConfiguration.GoogleAdPublisherId"
+                     data-ad-slot="@Configuration.BlogConfiguration.GoogleAdSlotId"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            }
+        </environment>
+    </div>
 </body>
 </html>

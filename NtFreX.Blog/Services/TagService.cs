@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Distributed;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
@@ -11,11 +10,11 @@ namespace NtFreX.Blog.Services
 {
     public class TagService
     {
-        private readonly TagRepository tagRepository;
-        private readonly ArticleRepository articleRepository;
-        private readonly IDistributedCache cache;
+        private readonly ITagRepository tagRepository;
+        private readonly IArticleRepository articleRepository;
+        private readonly ApplicationCache cache;
 
-        public TagService(TagRepository tagRepository, ArticleRepository articleRepository, IDistributedCache cache)
+        public TagService(ITagRepository tagRepository, IArticleRepository articleRepository, ApplicationCache cache)
         {
             this.tagRepository = tagRepository;
             this.articleRepository = articleRepository;
@@ -26,11 +25,11 @@ namespace NtFreX.Blog.Services
         {
             await tagRepository.UpdateTagsForArticle(model.Tags, model.Article.Id);
 
-            await cache.RemoveAsync(CacheKeys.AllDistinctTags);
-            await cache.RemoveAsync(CacheKeys.AllPublishedTags);
-            await cache.RemoveAsync(CacheKeys.AllDistinctPublishedTags);
-            await cache.RemoveAsync(CacheKeys.AllTags);
-            await cache.RemoveAsync(CacheKeys.TagsByArticleId(model.Article.Id));
+            await cache.RemoveSaveAsync(CacheKeys.AllDistinctTags);
+            await cache.RemoveSaveAsync(CacheKeys.AllPublishedTags);
+            await cache.RemoveSaveAsync(CacheKeys.AllDistinctPublishedTags);
+            await cache.RemoveSaveAsync(CacheKeys.AllTags);
+            await cache.RemoveSaveAsync(CacheKeys.TagsByArticleId(model.Article.Id));
         }
 
 
@@ -40,18 +39,18 @@ namespace NtFreX.Blog.Services
             {
                 var tags = await tagRepository.FindAsync();
                 if (includeUnpublished)
-                    return tags;
+                    return tags.Select(x => x.ToDto()).ToList();
 
                 var articles = await articleRepository.FindAsync(includeUnpublished);
-                return tags.Where(x => articles.Any(article => article.Id == x.ArticleId)).ToList();
+                return tags.Where(x => articles.Any(article => article.Id.ToString() == x.ArticleId)).Select(x => x.ToDto()).ToList();
             });
         }
 
         public async Task<IReadOnlyList<TagDto>> GetTagsByArticleIdAsync(string articleId)
             => await cache.CacheAsync(
-                CacheKeys.TagsByArticleId(articleId), 
-                CacheKeys.TimeToLive, 
-                () => tagRepository.FindAsync(articleId));
+                CacheKeys.TagsByArticleId(articleId),
+                CacheKeys.TimeToLive,
+                async () => (await tagRepository.FindAsync(articleId)).Select(x => x.ToDto()).ToList());
 
         public async Task<IReadOnlyList<string>> GetAllDistinctTagsAsync(bool includeUnpublished)
         {

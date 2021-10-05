@@ -1,0 +1,106 @@
+﻿<div style="height:30px;">
+    <div style="position:relative;">
+        <input type="text" @bind-value="Value" @bind-value:event="oninput" style="width:calc(100% - 20px);position:absolute;z-index:1;">
+        <select @bind-value="Value" @bind-value:event="oninput" style="height:30px;position:absolute;width:100%;left:0px;border:1px solid black;background:white;">
+            @foreach (var value in Values)
+            {
+                <option>@value</option>
+            }
+        </select>
+        @if (!string.IsNullOrEmpty(ConfigurationKey))
+        {
+            <button style="position:absolute;right:41px;z-index:2;border:1px solid black;width:22px;height:30px;background:white;" @onclick="@ClickSaveAsync">s</button>
+            <button style="position:absolute;right:20px;z-index:2;border:1px solid black;width:22px;height:30px;background:white;" @onclick="ClickRemoveAsync">x</button>
+        }
+    </div>
+</div>
+
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@code {
+    private string value;
+    private string[] values;
+
+    [Parameter]
+    public string ConfigurationKey { get; set; }
+
+    [Parameter]
+    public string Value
+    {
+        get => value;
+        set
+        {
+            if (this.value != value)
+            {
+                this.value = value;
+                ValueChanged.InvokeAsync(value).Wait();
+            }
+        }
+    }
+    [Parameter]
+    public string[] Values
+    {
+        get => values;
+        set
+        {
+            if ((this.values == null && value != null) || (this.values != null && value == null) || (this.values != null && value != null && !this.values.SequenceEqual(value)))
+            {
+                this.values = value;
+                ValuesChanged.InvokeAsync(value).Wait();
+                StateHasChanged();
+            }
+        }
+    }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string[]> ValuesChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> RemoveClicked { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SaveClicked { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(ConfigurationKey) && await localStorage.ContainKeyAsync(ConfigurationKey))
+        {
+            var savedFormats = await localStorage.GetItemAsync<string[]>(ConfigurationKey);
+            if (savedFormats != null && savedFormats.Length > 0)
+            {
+                Values = savedFormats;
+                Value = Values.Length > 0 ? Values[0] : string.Empty;
+                return;
+            }
+        }
+    }
+
+    private async Task ClickRemoveAsync()
+    {
+        if (!string.IsNullOrEmpty(ConfigurationKey))
+        {
+            if (Values.All(x => x != Value)) return;
+
+            Values = Values.Where(x => x != Value).ToArray();
+            Value = Values.Length > 0 ? Values[0] : string.Empty;
+
+            await localStorage.SetItemAsync(ConfigurationKey, Values);
+        }
+        await SaveClicked.InvokeAsync();
+    }
+    private async Task ClickSaveAsync()
+    {
+        if (!string.IsNullOrEmpty(ConfigurationKey))
+        {
+            if (Values.Any(x => x == Value)) return;
+
+            Values = Values.Concat(new[] { Value }).ToArray();
+
+            await localStorage.SetItemAsync(ConfigurationKey, Values);
+        }
+        await RemoveClicked.InvokeAsync();
+    }
+}

@@ -1,28 +1,115 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+.card { border:none;}
+.card-title-preview {
+    width:140px;
+    height:24px;
+    background-color:lightgray;
+}
+.card-subtitle-preview {
+    width:240px;
+    height:21px;
+    background-color:lightgray;
+}
+.tag-preview{
+    width:50px;
+    height:22px;
+}
+
+
 html, body {
     font-family: Arial;
+    width: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+}
+.footer {
+    padding: 20px 46px 10px 46px;
+    color: lightgray;
+    font-weight: bold;
+    font-size: 12px;
+    position: absolute;
+    bottom: 0px;
+    background-color: white;
+    border-top:1px solid lightgray;
+}
+.footer a {
+    margin:12px;
+}
+.footer span {
+    float:right;
+}
+
+input[type="radio"], input[type="checkbox"] {
+    margin:5px;
+}
+
+.tools {
+    padding:8px;
+    color:white;
+}
+
+.date-legend {
+    margin-top: 30px;
+}
+
+.date-legend p {
+    margin:0px;
+}
+
+.invalid-input {
+    color: red;
 }
 
 #app {
     position: relative;
     display: flex;
     flex-direction: row;
+    flex: 100;
+}
+
+.vertical-center {
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.loading span {
+    font-weight: bold;
+}
+.loading img {
+    width: 30px;
+    height: 30px;
+}
+
+.side-ad {
+    flex: 0 0 300px;
+    display: block !important;
+}
+.adsbygoogle {
+    width: 300px;
+    height: 600px;
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
-    max-width: 350px;
-    min-width: 350px;
+    background-image: linear-gradient(180deg, rgb(200, 200, 200) 0%, rgb(5,5,5) 70%);
     height: 100vh;
     position: sticky;
     top: 0px;
     word-break: break-word;
 }
+.sidebar a {
+    color: white;
+}
 
 
 .content {
     padding-top: 1.1rem;
+    padding-bottom:40px;
 }
 
 .tag {
@@ -30,25 +117,28 @@ html, body {
     border: 1px solid #f7f7f7;
     border-radius: 15px;
     padding: 1px 8px;
-    color: rgba(0,0,0,0.54);
     line-height: 18px;
     font-size: 12px;
     font-style: italic;
     border: 1px solid black;
-    margin:2px;
-    display:block;
-    float:left;
+    margin: 2px;
+    display: block;
+    float: left;
+}
+.tag span {
+    color: rgb(50,50,50);
 }
 
-.main {
-    flex: 1;
-}
+    .main {
+        flex: 1;
+    }
 
 .top-row {
     margin-bottom: 20px;
     align-items: center;
     padding-top: 1rem;
     padding-left: 2rem;
+    height: 100px;
 }
 
 .links {
@@ -91,8 +181,9 @@ blockquote {
 
 .article pre {
     background-color: lightyellow;
-    color:black;
-    padding:4px;
+    color: black;
+    padding: 4px;
+    white-space: pre-wrap;
 }
 
 .article img {
@@ -121,7 +212,58 @@ h6 {
     margin-top: 10px;
 }
 
-@media (max-width: 720px) {
+@media (min-width: 1351px) {
+    .main-scroller {
+        display:flex;
+        overflow-y: scroll;
+        scrollbar-width: 18px;
+        flex: 1;
+    }
+    html, body {
+        height: 100%;
+    }
+    .sidebar-spacer, .sidebar {
+        max-width: 350px;
+        min-width: 350px;
+    }
+    .sidebar {
+        overflow:hidden;
+        position: absolute;
+    }
+    .side-ad, .side-ad-spacer {
+        width: 300px;
+    }
+    .side-ad-spacer-border {
+        border-left: 1px solid lightgray;
+        position:absolute;
+        right:18px;
+        top:0px;
+        bottom:0px;
+        width:300px;
+    }
+    .side-ad {
+        position: absolute;
+        height: 100%;
+        right: 18px;
+    }
+    .footer {
+        width: calc(100% - 300px - 350px - 18px);
+    }
+}
+@media (max-width: 1350px) {
+    body {
+        flex-direction: column;
+    }
+    .side-ad, .adsbygoogle {
+        width: 100%;
+        height: 600px;
+        margin: auto;
+    }
+
+    .adsbygoogle {
+        position: relative;
+    }
+
     .sidebar {
         height: auto;
         max-width: 100%;
@@ -132,8 +274,12 @@ h6 {
         flex-direction: column !important;
     }
 
-    .main {
+    .main, .main-scroller {
         background-color:white;
         z-index:100;
+    }
+    .footer {
+        width: 100%;
+        border-bottom: 1px solid lightgray;
     }
 }

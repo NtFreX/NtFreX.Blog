@@ -8,6 +8,7 @@ using NtFreX.Blog.Services;
 using NtFreX.Core;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace NtFreX.Blog.Web
@@ -35,13 +36,12 @@ namespace NtFreX.Blog.Web
         [HttpGet("visit/{articleId}")]
         public async Task VisitAsync(string articleId)
         {
-            if (hostEnvironment.IsDevelopment())
+            if (!hostEnvironment.IsProduction())
                 return;
 
             await articleService.VisitArticleAsync(articleId, httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString(), httpContextAccessor.HttpContext.Request.Headers["User-Agent"]);
         }
 
-        // TODO: exclude own visits
         [HttpGet("visitorCount/{articleId}")]
         public async Task<long> GetVisitorCountAsync(string articleId)
             => await articleService.CountVisitorsAsync(articleId);
@@ -56,11 +56,11 @@ namespace NtFreX.Blog.Web
 
         [HttpGet("byTag/{tag}")]
         public async Task<IReadOnlyList<ArticleDto>> GetArticlesByTagAsync(string tag)
-            => await articleService.GetArticlesByTagAsync(WebHelper.Base64UrlDecode(tag), authorizationManager.IsAdmin());
+            => await articleService.GetArticlesByTagAsync(WebHelper.Base64UrlDecode(tag, Encoding.UTF8), authorizationManager.IsAdmin());
 
         [HttpGet("byTagWithVisitorCount/{tag}")]
         public async Task<IReadOnlyList<ArticleWithVisitsDto>> GetAllArticlesWithVisitorCountByTagAsync(string tag)
-            => await articleService.GetAllArticlesByTagWithVisitorCountAsync(WebHelper.Base64UrlDecode(tag), authorizationManager.IsAdmin());
+            => await articleService.GetAllArticlesByTagWithVisitorCountAsync(WebHelper.Base64UrlDecode(tag, Encoding.UTF8), authorizationManager.IsAdmin());
         
         [HttpGet]
         public async Task<IReadOnlyList<ArticleDto>> GetAllArticlesAsync()

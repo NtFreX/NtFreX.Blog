@@ -27,8 +27,11 @@ namespace NtFreX.Blog.Web
             await WriteUrlElementAsync(host);
             foreach(var article in await articleService.GetAllArticlesAsync(includeUnpublished: false))
             {
-                await WriteUrlElementAsync($"{ host}/article/{article.Id}");
+                await WriteUrlElementAsync($"{host}/article/{article.Id}");
             }
+
+            await WriteUrlElementAsync($"{host}/tools/unixtime");
+            await WriteUrlElementAsync($"{host}/tools/base64");
 
             await Response.Body.WriteAsync(Encoding.UTF8.GetBytes(@"</urlset>"));
         }

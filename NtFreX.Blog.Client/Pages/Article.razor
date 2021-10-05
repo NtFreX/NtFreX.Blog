@@ -5,17 +5,30 @@
 
 @if (article == null)
 {
-    <p><em>Loading...</em></p>
+    <div class="card article">
+        <div class="card-body">
+            <div style="height:52px;" class="d-flex">
+                <div class="mr-auto"><h3 class="card-title-preview" /></div>
+                <div><div class="loading"><span>Loading... </span><img src="/hourglass.gif" alt="loading" /></div></div>
+            </div>
+            <div>
+                <h4 class="card-subtitle-preview mb-2 text-muted"></h4>
+            </div>
+
+            <div id="content" style="width:100%;height:400px;background-color:lightgray;margin:20px 0px;">
+            </div>
+
+            <div>
+                <Tag Name="" ShowNoData="true" />
+                <Tag Name="" ShowNoData="true" />
+                <Tag Name="" ShowNoData="true" />
+            </div>
+        </div>
+    </div>
 }
 else
 {
-    <Title Value='@($"NTFREX'S SPACE - {article.Title}")' />
-
-    <div class="card">
-        <div class="card-body">
-            <NavLink href="" Match="NavLinkMatch.All"><span>Home</span></NavLink> - <span>@article.Title</span>
-        </div>
-    </div>
+    <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - {article.Title}")' />
 
     <div class="card article">
         <div class="card-body">
@@ -49,32 +62,27 @@ else
         </div>
     </div>
 
-    <div class="card comments">
-        <div class="card-body">
-            <h5 class="card-title">Comments</h5>
+    <div class="comments">
+        <div class="card">
+            <div class="card-body">
+                <h5 style="margin:4px;" class="card-title">Add Comment</h5>
+                <div style="margin: 4px;"><span style="width: 20%; display: block; float: left;">Title</span><input style="width: 80%;" @bind="newComment.Title" /></div>
+                <div style="margin: 4px;"><span style="width: 20%; display: block; float: left;">User</span><input style="width: 80%;" @bind="newComment.User" /></div>
+                <div style="margin: 4px;"><textarea style="width: 100%;" rows="3" @bind="newComment.Content"></textarea></div>
+                <button type="button" class="btn btn-primary" style="float:right; margin:4px;" @onclick="@InsertCommentAsync">Save</button>
+            </div>
+        </div>
 
-            <div class="card">
+        @foreach (var comment in comments)
+        {
+            <div class="card comment">
                 <div class="card-body">
-                    <h5 style="margin:4px;" class="card-title">Add Comment</h5>
-                    <div style="margin: 4px;"><span style="width: 20%; display: block; float: left;">Title</span><input style="width: 80%;" @bind="newComment.Title" /></div>
-                    <div style="margin: 4px;"><span style="width: 20%; display: block; float: left;">User</span><input style="width: 80%;" @bind="newComment.User" /></div>
-                    <div style="margin: 4px;"><textarea style="width: 100%;" rows="3" @bind="newComment.Content"></textarea></div>
-                    <button type="button" class="btn btn-primary" style="float:right; margin:4px;" @onclick="@InsertCommentAsync">Save</button>
+                    <h5 class="card-title">@comment.Title</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">@comment.Date.ToShortDateString() @comment.Date.ToShortTimeString() @comment.User</h6>
+                    <p>@comment.Content</p>
                 </div>
             </div>
-
-            @foreach (var comment in comments)
-            {
-                <div class="card comment">
-                    <div class="card-body">
-                        <h5 class="card-title">@comment.Title</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">@comment.Date.ToShortDateString() @comment.Date.ToShortTimeString() @comment.User</h6>
-                        <p>@comment.Content</p>
-                    </div>
-                </div>
-            }
-
-        </div>
+        }
     </div>
 
     <div class="card">
@@ -95,7 +103,7 @@ else
     private CommentDto[] comments;
     private TagDto[] tags;
     private TagDto[] allTags;
-    private CreateCommentDto newComment;
+    private CreateCommentDto newComment = new CreateCommentDto();
     private bool isAdmin;
 
     [Parameter] public string Id { get; set; }
@@ -103,17 +111,21 @@ else
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+        await LoadDataAsync();
+    }
 
-        newComment = new CreateCommentDto();
-        newComment.ArticleId = Id;
-        topArticles = await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/topTreeWithVisitorCount/{Id}");
-        article = await Http.GetFromJsonAsync<ArticleDto>($"/api/article/{Id}");
-        comments = await Http.GetFromJsonAsync<CommentDto[]>($"/api/comment/byArticleId/{Id}");
-        tags = await Http.GetFromJsonAsync<TagDto[]>($"/api/tag/byArticleId/{Id}");
-        allTags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag");
-        isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"));
-
-        await Http.GetAsync($"/api/article/visit/{Id}");
+    private async Task LoadDataAsync()
+    {
+        await Task.WhenAll(new Task[] {
+            new Func<Task>(async () => topArticles = await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/topTreeWithVisitorCount/{Id}")).Invoke(),
+            new Func<Task>(async () => article = await Http.GetFromJsonAsync<ArticleDto>($"/api/article/{Id}")).Invoke(),
+            new Func<Task>(async () => comments = await Http.GetFromJsonAsync<CommentDto[]>($"/api/comment/byArticleId/{Id}")).Invoke(),
+            new Func<Task>(async () => tags = await Http.GetFromJsonAsync<TagDto[]>($"/api/tag/byArticleId/{Id}")).Invoke(),
+            new Func<Task>(async () => allTags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag")).Invoke(),
+            new Func<Task>(async () => isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"))).Invoke(),
+            new Func<Task>(async () => await Http.GetAsync($"/api/article/visit/{Id}")).Invoke(),
+            new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
+        });
     }
 
     private async Task InsertCommentAsync()
@@ -121,8 +133,10 @@ else
         if (string.IsNullOrEmpty(newComment.Content) && string.IsNullOrEmpty(newComment.Title))
             return;
 
+        newComment.ArticleId = Id;
         await Http.PostAsJsonAsync("/api/comment", newComment);
+        newComment = new CreateCommentDto();
 
-        await OnParametersSetAsync();
+        await LoadDataAsync();
     }
 } 

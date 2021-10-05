@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Distributed;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
@@ -13,12 +11,12 @@ namespace NtFreX.Blog.Services
 {
     public class CommentService
     {
-        private readonly IDistributedCache cache;
-        private readonly IMongoCollection<CommentModel> collection;
+        private readonly ICommentRepository commentRepository;
+        private readonly ApplicationCache cache;
 
-        public CommentService(Database database, IDistributedCache cache)
+        public CommentService(ICommentRepository commentRepository, ApplicationCache cache)
         {
-            collection = database.Blog.GetCollection<CommentModel>("comment");
+            this.commentRepository = commentRepository;
             this.cache = cache;
         }
 
@@ -27,8 +25,7 @@ namespace NtFreX.Blog.Services
         {
             return await cache.CacheAsync(CacheKeys.CommentsByArticleId(id), CacheKeys.TimeToLive, async () =>
             {
-                var objectId = new ObjectId(id);
-                var dbModels = await collection.Find(d => d.ArticleId == objectId).ToListAsync();
+                var dbModels = await commentRepository.GetCommentsByArticleIdAsync(id);
                 return dbModels.Select(x => x.ToDto()).ToList();
             });            
         }
@@ -39,13 +36,12 @@ namespace NtFreX.Blog.Services
             {
                 Date = DateTime.UtcNow,
                 Content = model.Content,
-                ArticleId = new ObjectId(model.ArticleId),
+                ArticleId = model.ArticleId,
                 Title = model.Title,
                 User = model.User
             };
-            await collection.InsertOneAsync(dbModel);
-
-            await cache.RemoveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
+            await commentRepository.InsertCommentAsync(dbModel);
+            await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
         }
     }
 }

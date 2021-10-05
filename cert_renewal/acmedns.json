@@ -1,0 +1,8 @@
+{
+	"ntfrex.com": {
+		"username": "DnsAuthChallengeUser", 
+		"password": "DnsAuthChallengePw", 
+		"fulldomain": "DnsAuthChallengeFullDomain", 
+		"subdomain": "DnsAuthChallengeSubDomain", "allowfrom": []
+	}
+}

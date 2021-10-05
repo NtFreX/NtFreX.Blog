@@ -13,7 +13,7 @@ namespace NtFreX.Blog.Auth
 
         public bool IsAdmin()
         {
-            return hostEnvironment.IsDevelopment();
+            return hostEnvironment.IsDevelopment() || hostEnvironment.IsPreProduction();
         }
     }
 }

@@ -1,0 +1,196 @@
+﻿@page "/tools/unixtime"
+
+@using System.Globalization;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+
+<Title Value="@(Configuration.BlogConfiguration.BlogTitle + " - Unix time tools")" />
+<Meta name="description" content="Convert to or from an unix timestamp." />
+
+
+<div style="margin:24px;">
+    <h3>Unix time tools</h3>
+
+    <div><span>Convert to/from unix timestamp</span></div>
+
+    <div>
+        <input type="radio" name="Format" @oninput="SetMiliseconds" checked /><span>Miliseconds</span>
+        <input type="radio" name="Format" @oninput="SetSeconds" /><span>Seconds</span>
+    </div>
+
+    <div><input type="number" @bind-value="UnixTimeValue" @bind-value:event="oninput" style="width:100%;" /></div>
+
+    <div><input type="text" @bind-value="DateTimeValue" @bind-value:event="oninput" style="width:100%;" /></div>
+
+    <NtFreX.Blog.Client.Components.Combobox @bind-Value="@DateTimeFormat" @bind-Values="DateTimeFormats" ConfigurationKey="NtFreX.Blog.Tools.UnixTime.DateTimeFormats" />
+
+    <div><span>(Date/Time formats contained in the dropdown list are safed in your local browser)</span></div>
+
+    @if (InvalidUnixTimeValue)
+    {
+        <p class="invalid-input">The input is not a valid unix time value.</p>
+    }
+    @if (InvalidDateTimeValue)
+    {
+        <p class="invalid-input">The input is not a valid date time value.</p>
+    }
+    @if (InvalidDateTimeFormat)
+    {
+        <p class="invalid-input">The input is not a valid date time format.</p>
+    }
+
+    <div class="date-legend">
+        <p><strong>yy</strong> - Year 2021 as 21</p>
+        <p><strong>yyyy</strong> - Year 2021 as 2021</p>
+        <p><strong>M</strong> - Month of the year from 1 to 12</p>
+        <p><strong>MM</strong> - Month of the year from 01 to 12</p>
+        <p><strong>MMM</strong> - Month of the year from Jan to Dec</p>
+        <p><strong>MMMM</strong> - Month of the year from January to Decembre</p>
+        <p><strong>d</strong> - Day of the month from 1 to 31</p>
+        <p><strong>dd</strong> - Day of the month from 01 to 31</p>
+        <p><strong>ddd</strong> - Day of the month from Mon to Sun</p>
+        <p><strong>dddd</strong> - Day of the month from Monday to Sunday</p>
+        <p><strong>h</strong> - Hour of the day from 0 to 11</p>
+        <p><strong>hh</strong> - Hour of the day from 00 to 11</p>
+        <p><strong>H</strong> - Hour of the day from 0 to 23</p>
+        <p><strong>HH</strong> - Hour of the day from 00 to 23</p>
+        <p><strong>m</strong> - Minute of the hour from 0 to 59</p>
+        <p><strong>mm</strong> - Minute of the hour from 00 to 59</p>
+        <p><strong>s</strong> - Second of the minute from 0 to 59</p>
+        <p><strong>ss</strong> - Second of the minute from 00 to 59</p>
+        <p><strong>f</strong> - Tenths of the seconds</p>
+        <p><strong>ff</strong> - Hundredths of a second</p>
+        <p><strong>fff</strong> - Hundredths of a second</p>
+        <p><strong>fff</strong> - Thousandth of a second</p>
+        <p><strong>t</strong> - A/P</p>
+        <p><strong>tt</strong> - AM/PM</p>
+        <p><strong>z</strong> - UTC +1</p>
+        <p><strong>zz</strong> - UTC +01</p>
+        <p><strong>zzz</strong> - UTC +00:01</p>
+    </div>
+</div>
+
+@code {
+    private readonly DateTime StartDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
+    private long unixTimeValue;
+    private string dateTimeValue;
+    private UnixTimeFormat format = UnixTimeFormat.Miliseconds;
+    public string dateTimeFormat = DateTimeFormats[0];
+
+    public static string[] DateTimeFormats { get; set; } = new string[] {
+        CultureInfo.CurrentCulture.DateTimeFormat.SortableDateTimePattern,
+        "dd.MM.yyyy HH:mm:ss.fff",
+        "dd.MM.yyyy HH:mm:ss",
+        "dd/MM/yyyy HH:mm:ss.fff",
+        "dd/MM/yyyy HH:mm:ss"
+    };
+
+    public UnixTimeFormat Format
+    {
+        get => format;
+        set
+        {
+            format = value;
+            SetDateTimeValue(dateTimeValue);
+        }
+    }
+
+    public string DateTimeFormat
+    {
+        get => dateTimeFormat;
+        set
+        {
+            try
+            {
+                var dateTime = DateTime.UtcNow;
+                if (DateTime.TryParseExact(dateTimeValue, dateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsedDateTime))
+                {
+                    dateTime = parsedDateTime;
+                }
+
+                dateTimeFormat = value;
+                SetDateTimeValue(dateTime.ToString(value));
+            }
+            catch
+            {
+                InvalidDateTimeFormat = true;
+            }
+        }
+    }
+
+    public bool InvalidUnixTimeValue;
+    public bool InvalidDateTimeValue;
+    public bool InvalidDateTimeFormat;
+
+    public long UnixTimeValue { get => unixTimeValue; set => SetUnixTimeValue(value); }
+    public string DateTimeValue { get => dateTimeValue; set => SetDateTimeValue(value); }
+
+    public void SetMiliseconds() => Format = UnixTimeFormat.Miliseconds;
+    public void SetSeconds() => Format = UnixTimeFormat.Seconds;
+
+    protected override Task OnInitializedAsync()
+    {
+        SetDateTimeValue(DateTime.UtcNow.ToString(DateTimeFormat));
+        return Task.CompletedTask;
+    }
+
+    private void SetUnixTimeValue(long value)
+    {
+        try
+        {
+            unixTimeValue = value;
+
+            var dateTime = new DateTime(StartDateTime.Ticks);
+            if (Format == UnixTimeFormat.Miliseconds)
+            {
+                dateTime = dateTime.AddMilliseconds(value);
+            }
+            else if (Format == UnixTimeFormat.Seconds)
+            {
+                dateTime = dateTime.AddSeconds(value);
+            }
+
+            dateTimeValue = dateTime.ToString(DateTimeFormat);
+
+            InvalidUnixTimeValue = false;
+            InvalidDateTimeValue = false;
+            InvalidDateTimeFormat = false;
+        }
+        catch
+        {
+            InvalidUnixTimeValue = true;
+        }
+    }
+
+    private void SetDateTimeValue(string value)
+    {
+        try
+        {
+            dateTimeValue = value;
+
+            var dateTime = DateTime.ParseExact(value, DateTimeFormat, CultureInfo.InvariantCulture);
+            if (Format == UnixTimeFormat.Miliseconds)
+            {
+                unixTimeValue = (long)(dateTime - StartDateTime).TotalMilliseconds;
+            }
+            else if (Format == UnixTimeFormat.Seconds)
+            {
+                unixTimeValue = (long)(dateTime - StartDateTime).TotalSeconds;
+            }
+
+            InvalidUnixTimeValue = false;
+            InvalidDateTimeValue = false;
+            InvalidDateTimeFormat = false;
+        }
+        catch
+        {
+            InvalidDateTimeValue = true;
+        }
+    }
+
+    public enum UnixTimeFormat
+    {
+        Seconds,
+        Miliseconds
+    }
+}

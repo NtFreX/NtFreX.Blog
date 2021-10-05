@@ -1,11 +1,26 @@
 ﻿@inherits LayoutComponentBase
 
+
+<div class="sidebar-spacer"></div>
+
 <div class="sidebar">
     <NavMenu />
 </div>
 
-<div class="main">
-    <div class="content px-4">
-        @Body
+<div class="main-scroller">
+    <div class="main">
+        <div class="content px-4">
+            @Body
+        </div>
+
+        <div class="footer">
+            <a href="/terms.html" target="_blank">Terms & Conditions</a>
+            <a href="/privacy.txt" target="_blank">Privacy policy</a>
+            <a href="/references.txt" target="_blank">References</a>
+            <span>@Configuration.BlogConfiguration.BlogOwner © @DateTime.Now.Year. All rights reserved.</span>
+        </div>
     </div>
+
+    <div class="side-ad-spacer"></div>
+    <div class="side-ad-spacer-border"></div>
 </div>

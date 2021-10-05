@@ -1,0 +1,153 @@
+﻿@page "/tools/base64"
+
+@using System.Text;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+
+<Title Value="@(Configuration.BlogConfiguration.BlogTitle + " - Base64 tools")" />
+<Meta name="description" content="Encode or decode a base64 encoded text." />
+
+<div style="margin:24px;">
+    <h3>Base64 tools</h3>
+
+
+    <div><b>Encode or decode a base64 text.</b></div>
+
+    <div><span>UrlEncoded</span><input type="checkbox" @bind-value="UrlEncodedText" @bind-value:event="oninput" /></div>
+    <div>
+        <select @bind-value="TextEncoding" @bind-value:event="oninput">
+            @foreach (var value in Encodings)
+            {
+                <option value="@value.Encoding.CodePage">@value.Name</option>
+            }
+        </select>
+    </div>
+
+    <div style="height:200px;"><NtFreX.Blog.Client.Components.Textarea @bind-Value="RawValue" /></div>
+    <div style="height:200px;"><NtFreX.Blog.Client.Components.Textarea @bind-Value="Base64Value" /></div>
+
+    @if (InvalidBase64Value)
+    {
+        <p class="invalid-input">The input is not a valid Base-64 string.</p>
+    }
+
+    <div style="margin-top:40px;"><b>Encode or decode a base64 file.</b></div>
+    <div><span>UrlEncoded</span><input type="checkbox" @bind-value="UrlEncodedFile" @bind-value:event="oninput" /></div>
+    <div><InputFile OnChange="@LoadFileAsync" /></div>
+    <div style="height:200px;"><NtFreX.Blog.Client.Components.Textarea @bind-Value="Base64FileValue" /></div>
+    <div><span>Filename</span><input type="text" @bind-value="FileName" @bind-value:event="oninput" /><button @onclick="@DownloadFileAsync">Download as file</button></div>
+
+    @if (InvalidBase64FileValue)
+    {
+        <p class="invalid-input">The input is not a valid Base-64 string.</p>
+    }
+</div>
+
+@code {
+    [Inject] BlazorDownloadFile.IBlazorDownloadFileService BlazorDownloadFileService { get; set; }
+
+    private string rawValue = string.Empty;
+    private string base64Value = string.Empty;
+    private bool urlEncodedText = false;
+    private bool urlEncodedFile = false;
+    private int textEncoding = Encoding.UTF8.CodePage;
+    private byte[] fileBuffer = new byte[0];
+
+    public (Encoding Encoding, string Name)[] Encodings = new (Encoding, string)[] {
+        (Encoding.ASCII, "US-ASCII"),
+        (Encoding.Unicode, "Unicode"),
+        (Encoding.BigEndianUnicode, "Unicode (Big Endian)"),
+        (Encoding.UTF32, "Unicode (UTF-32)"),
+        (Encoding.UTF8, "Unicode (UTF-8)"),
+        (Encoding.Latin1, "Western European (ISO)"),
+    };
+
+    public string FileName = "binary";
+    public string Base64FileValue;
+    public bool InvalidBase64FileValue;
+    public bool InvalidBase64Value;
+    public bool UrlEncodedFile
+    {
+        get => urlEncodedFile;
+        set
+        {
+            urlEncodedFile = value;
+            EncodeCurrentFile();
+        }
+    }
+    public bool UrlEncodedText
+    {
+        get => urlEncodedText; set
+        {
+            urlEncodedText = value;
+            SetRawValue(RawValue);
+        }
+    }
+    public string RawValue { get => rawValue; set => SetRawValue(value); }
+    public string Base64Value { get => base64Value; set => SetBase64Value(value); }
+    public int TextEncoding
+    {
+        get => textEncoding; set
+        {
+
+            textEncoding = value;
+            SetRawValue(RawValue);
+        }
+    }
+
+    private void SetRawValue(string value)
+    {
+        var encoding = Encoding.GetEncoding(TextEncoding);
+
+        rawValue = value;
+        base64Value = UrlEncodedText ? WebHelper.Base64UrlEncode(value, encoding) : Convert.ToBase64String(encoding.GetBytes(value));
+    }
+
+    private void SetBase64Value(string value)
+    {
+        try
+        {
+            var encoding = Encoding.GetEncoding(TextEncoding);
+            Console.WriteLine(encoding);
+            base64Value = value;
+            rawValue = UrlEncodedText ? WebHelper.Base64UrlDecode(value, encoding) : encoding.GetString(Convert.FromBase64String(value));
+            InvalidBase64Value = false;
+        }
+        catch (FormatException)
+        {
+            InvalidBase64Value = true;
+        }
+    }
+
+
+    private async Task LoadFileAsync(InputFileChangeEventArgs e)
+    {
+        var input = e.File.OpenReadStream(long.MaxValue);
+        using var memory = new System.IO.MemoryStream();
+        await input.CopyToAsync(memory);
+
+        fileBuffer = new byte[memory.Length];
+        memory.Seek(0, System.IO.SeekOrigin.Begin);
+        await memory.ReadAsync(fileBuffer, 0, fileBuffer.Length);
+
+        EncodeCurrentFile();
+    }
+
+    private void EncodeCurrentFile()
+    {
+        Base64FileValue = UrlEncodedFile ? WebHelper.Base64UrlEncode(fileBuffer) : Convert.ToBase64String(fileBuffer, 0, fileBuffer.Length);
+    }
+
+    private async Task DownloadFileAsync()
+    {
+        try
+        {
+            var buffer = UrlEncodedFile ? WebHelper.Base64UrlDecode(Base64FileValue) : Convert.FromBase64String(Base64FileValue);
+            await BlazorDownloadFileService.DownloadFile(FileName, buffer, bufferSize: buffer.Length, contentType: "application/octet-stream");
+            InvalidBase64FileValue = false;
+        }
+        catch
+        {
+            InvalidBase64FileValue = true;
+        }
+    }
+}

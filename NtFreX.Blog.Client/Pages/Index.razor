@@ -2,33 +2,49 @@
 @page "/{tag}"
 
 @using Microsoft.AspNetCore.Components.Web.Extensions.Head
+@using System.Text;
 
 @inject HttpClient Http
 @inject NavigationManager navigationManager
 
-<Title Value="NTFREX'S SPACE" />
+<Title Value="@(Title)" />
+@if (!string.IsNullOrEmpty(Tag))
+{
+    <Meta name="description" content=@($"Articles tagged with '{WebHelper.Base64UrlDecode(Tag, Encoding.UTF8)}'.") />
+}
 
-<div class="top-row">
-    <h2>NtFreX's space</h2>
-    <span>A small blog about programming and stuff.</span>
+@if (isAdmin)
+{
+    <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:50px;" @onclick="@CreateArticleAsync">Create</button>
+}
 
-    @if (!string.IsNullOrEmpty(Tag))
+<div class="top-row d-flex">
+    <div class="mr-auto">
+        <h2>@Configuration.BlogConfiguration.BlogTitle</h2>
+        <span>@Configuration.BlogConfiguration.BlogSubtitle</span>
+
+        @if (!string.IsNullOrEmpty(Tag))
+        {
+            <h6 style="margin-top: 8px; font-style: italic; color: gray;">Displaying articles with the label '@(WebHelper.Base64UrlDecode(Tag, Encoding.UTF8))'</h6>
+            <NavLink href="" Match="NavLinkMatch.All">
+                <span>Clear filter</span>
+            </NavLink>
+        }
+    </div>
+
+    @if (articles == null)
     {
-        <h6 style="margin-top: 8px; font-style: italic; color: gray;">Displaying articles with the label '@(WebHelper.Base64UrlDecode(Tag))'</h6>
-        <NavLink href="" Match="NavLinkMatch.All">
-            <span>Clear filter</span>
-        </NavLink>
-    }
-
-    @if (isAdmin)
-    {
-        <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:50px;" @onclick="@CreateArticleAsync">Create</button>
+        <div class="loading"><span>Loading... </span><img src="/hourglass.gif" alt="loading" /></div>
     }
 </div>
 
 @if (articles == null)
 {
-    <p><em>Loading...</em></p>
+    <ArticlePreview ShowNoData="true" />
+    <ArticlePreview ShowNoData="true" />
+    <ArticlePreview ShowNoData="true" />
+    <ArticlePreview ShowNoData="true" />
+    <ArticlePreview ShowNoData="true" />
 }
 else
 {
@@ -37,28 +53,34 @@ else
         <ArticlePreview Article="@article.Article" Tags="@tags" IsAdmin="@isAdmin" Visits="@article.VisitorCount" />
     }
 }
-
 @code {
     private IReadOnlyList<ArticleWithVisitsDto> articles;
     private TagDto[] tags;
     private bool isAdmin;
 
+    public string Title => Configuration.BlogConfiguration.BlogTitle + (!string.IsNullOrEmpty(Tag) ? $" - Articles tagged with '{WebHelper.Base64UrlDecode(Tag, Encoding.UTF8)}'" : string.Empty);
     [Parameter] public string Tag { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
 
-        isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"));
-        articles = string.IsNullOrEmpty(Tag)
-            ? await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>("/api/article/withVisitorCount")
-            : await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/byTagWithVisitorCount/{Tag}");
-        tags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag");
+        articles = null;
+
+        await Task.WhenAll(new Task[] {
+            new Func<Task>(async () => isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"))).Invoke(),
+            new Func<Task>(async () =>
+                articles = string.IsNullOrEmpty(Tag)
+                    ? await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>("/api/article/withVisitorCount")
+                    : await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/byTagWithVisitorCount/{Tag}")).Invoke(),
+            new Func<Task>(async () => tags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag")).Invoke(),
+            new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
+    });
     }
 
     public async Task CreateArticleAsync()
     {
         var id = await Http.PostAsync("/api/article", null);
-        navigationManager.NavigateTo($"/edit/{id}");
+        navigationManager.NavigateTo($"/edit/{await id.Content.ReadAsStringAsync()}");
     }
 }

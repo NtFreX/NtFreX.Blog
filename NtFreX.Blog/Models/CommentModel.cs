@@ -1,16 +1,19 @@
-﻿using MongoDB.Bson;
+﻿using Dapper.Contrib.Extensions;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 
 namespace NtFreX.Blog.Models
 {
+    [Table("comment")]
     public class CommentModel
     {
+        [ExplicitKey]
         [BsonElement("id", Order = 0)]
-        public ObjectId Id { get; set; }
+        public string Id { get; set; }
 
         [BsonElement("article_id", Order = 1)]
-        public ObjectId ArticleId { get; set; }
+        public string ArticleId { get; set; }
 
         [BsonElement("date", Order = 2)]
         public DateTime Date { get; set; }

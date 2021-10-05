@@ -2,8 +2,21 @@ This is the source code of my blog. See it live here: https://ntfrex.com
 
 **Dependencies**
 
- - Redis
- - MongoDb
+ - Mysql/MongoDb
+ - (Redis)
+
+ **Configuration**
+ 
+To configure the production environment you can set environment variables in the `https-instance-single.config` file.
+To configure the development environment you can set env variables in the `launchSettings.json` file. 
+To build the SSL certificate renewal container you can set the variables in the `build_cert_renewal_container.ps1` file.
+
+To configure/customize this project you can start with the Configuration.cs file in the NtFreX.Blog.Configuration project. It contains a lot of options to play around. 
+For all values in the ConfigNames class a value must be set where the choosen configuration provider can find it.
+Next you might want to add your own privacy.txt, ads,txt, manifest.json, references.txt, robots.txt, security.txt and terms.html.
+As there is currently no IaC you need to setup your dependencies and prod environment manualy. 
+
+TODO: NtFreX.** dependencies (one command build/run)
 
 **Build and run localy**
 
@@ -11,31 +24,18 @@ This is the source code of my blog. See it live here: https://ntfrex.com
 dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 ```
 
-**What I run to deploy on my server**
-
-```
-git pull \
-	&& cp -rf /mnt/nas/ftr/blog.ntfrex.com/ntfrex.com.pfx ./NtFreX.Blog \
-	&& sudo rm -r nuget/ && sudo cp -r /mnt/nas/ftr/nuget ./nuget \
-	&& docker build -f "./Dockerfile" --force-rm -t ntfrexblog "./" \
-	&& sudo systemctl restart blog \
-	&& sudo journalctl -u blog -f -n 10
-```
-
-I have setup a systemd service named blog which runs my docker image similar to the following command.
-```
-docker run -e NTFREXBLOGCERTPWD -p 80:80 -p 443:443 --name blog ntfrexblog
-```
-
-
 **TODO**
 
- - Use ASPNETCORE_URLS env variable from launchSettings.json to setup kestrel listeners (get rid of multiple configuration locations)
- - Use certificate store for production environment
- - Setup Blazor Hybrid
+ - dashboard&alarms
+ - IaC (dashboard alarms, mongodb, rds, elastic beanstalk, ec2 config, redis, cert renewal lambda, networking, security, dev env? sql install script?)
+ - deployment pipeline with pre prod stage (pipeline for cert renewal container)
  - Randomize cache livetime so not all caches are invalidated at the same time
- - restricted /Private folder access doesn't work
  - cache blazor pages by route
- - rolling updates
- - deployment pipeline with pre prod stage
+ - code first + migrations
+ - upvote or downvote article
+ - share article
+ - page metadata (SEO)
+ - exclude own page visits (counts)
+ - optimize db queries
+ - make everything configurable
  - ...
