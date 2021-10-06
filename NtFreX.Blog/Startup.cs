@@ -37,7 +37,8 @@ namespace NtFreX.Blog
             var metrics = AppMetrics.CreateDefaultBuilder().Build();
             services.AddMetrics(metrics);
             services.AddMetricsTrackingMiddleware();
-            services.AddHealthChecks();
+            services.AddHealthChecks()
+                    .AddCheck<CertificateExpiringHealthCheck>("SslCertificateHealthCheck");
 
             if (Blog.Configuration.BlogConfiguration.ApplicationCacheType == Blog.Configuration.CacheType.Distributed)
             {

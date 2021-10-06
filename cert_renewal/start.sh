@@ -18,6 +18,6 @@ echo "Starting cert refresh" && id && \
 				-password env:DomainSslCertPw && \
 
 	echo "Writing base64 file" && \
-	cat /tmp/.certbot/config/live/ntfrex.com/cert.pfx | base64 > /tmp/.certbot/config/live/ntfrex.com/cert_base64.pfx && \
+	cat /tmp/.certbot/config/live/ntfrex.com/cert.pfx | base64 > /tmp/.certbot/config/live/ntfrex.com/cert_base64.pfx
 
-	python3 /etc/letsencrypt/update_db.py
+python3 /etc/letsencrypt/update_db.py

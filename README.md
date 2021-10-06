@@ -10,6 +10,7 @@ This is the source code of my blog. See it live here: https://ntfrex.com
 To configure the production environment you can set environment variables in the `https-instance-single.config` file.
 To configure the development environment you can set env variables in the `launchSettings.json` file. 
 To build the SSL certificate renewal container you can set the variables in the `build_cert_renewal_container.ps1` file.
+ - Note: The DbPasswordVariable needs to be a base64 encoded value to support all special characters
 
 To configure/customize this project you can start with the Configuration.cs file in the NtFreX.Blog.Configuration project. It contains a lot of options to play around. 
 For all values in the ConfigNames class a value must be set where the choosen configuration provider can find it.
@@ -25,6 +26,8 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 ```
 
 **TODO**
+
+ - host own acme instance in cert renewal container
 
  - dashboard&alarms
  - IaC (dashboard alarms, mongodb, rds, elastic beanstalk, ec2 config, redis, cert renewal lambda, networking, security, dev env? sql install script?)
