@@ -8,7 +8,7 @@ namespace NtFreX.Blog
     {
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            if (ServerCertificateSelector.Instance.IsCertificateExpired())
+            if (ServerCertificateSelector.Instance.HasNoValidCertificate())
                 return Task.FromResult(HealthCheckResult.Unhealthy("The ssl certificate is about to expire"));
 
             if (ServerCertificateSelector.Instance.IsCertificateAboutToExpire())
