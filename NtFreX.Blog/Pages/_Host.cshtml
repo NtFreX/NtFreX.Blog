@@ -9,15 +9,6 @@
 <html lang="en">
 <head>
     <environment include="Production">
-        @if (Configuration.BlogConfiguration.ClientSideHttpsRedirection)
-        {
-            <script type="text/javascript">
-                if (window.location.protocol == "http:") {
-                    window.location = "https://" + window.location.host + window.location.pathname + window.location.search + window.location.hash;
-                }
-            </script>
-        }
-
         @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.GoogleTagMeasurementId))
         {
             <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -35,12 +26,18 @@
             <meta name="google-site-verification" content="@Configuration.BlogConfiguration.GoogleSiteVerification" />
         }
 
+        @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.CloudflareToken))
+        {
+            <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "@Configuration.BlogConfiguration.CloudflareToken"}'></script>
+        }
+
     </environment>
 
     <title>@Configuration.BlogConfiguration.BlogTitle</title>
     <meta charset="utf-8" />
     <meta name="description" content="@Configuration.BlogConfiguration.BlogDescription" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F9F9F9" />
     <meta http-equiv="Content-Security-Policy" content="
           script-src    * 'unsafe-inline' 'unsafe-eval';
           style-src     * data: blob: 'unsafe-inline';
@@ -53,6 +50,10 @@
     <link rel="stylesheet" href="css/site.css" />
     <link href="manifest.json" rel="manifest" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com">
 </head>
 <body>
     <div id="app">
@@ -65,7 +66,35 @@
         <a class="dismiss">🗙</a>
     </div>
 
-    <script src="_framework/blazor.webassembly.js"></script>
+    <environment exclude="Production">
+        <script src="_framework/blazor.webassembly.js"></script>
+    </environment>
+    <environment include="Production">
+        <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+        <script type="module">
+            import { BrotliDecode } from './decode.min.js';
+            Blazor.start({
+                loadBootResource: function (type, name, defaultUri, integrity) {
+                    if (type !== 'dotnetjs') {
+                        return (async function () {
+                            const response = await fetch(defaultUri + '.br', { cache: 'no-cache' });
+                            if (!response.ok) {
+                                throw new Error(response.statusText);
+                            }
+                            const originalResponseBuffer = await response.arrayBuffer();
+                            const originalResponseArray = new Int8Array(originalResponseBuffer);
+                            const decompressedResponseArray = BrotliDecode(originalResponseArray);
+                            const contentType = type ===
+                                'dotnetwasm' ? 'application/wasm' : 'application/octet-stream';
+                            return new Response(decompressedResponseArray,
+                                { headers: { 'content-type': contentType } });
+                        })();
+                    }
+                }
+            });
+        </script>
+    </environment>
+
     @if (Configuration.BlogConfiguration.ServiceWorker)
     {
         <script>navigator.serviceWorker.register('service-worker.js');</script>

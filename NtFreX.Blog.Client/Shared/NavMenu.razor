@@ -4,7 +4,7 @@
 
 <div>
     <div class="nav flex-column">
-        <NavLink href="" Match="NavLinkMatch.All">
+        <NavLink href="/" Match="NavLinkMatch.All">
             <div style="color: white; text-align: center; margin: 15px 4px 15px 4px; font-family: Arial; font-size: 15px; ">
                 @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.BlogOwnerProfileImage))
                 {
@@ -34,8 +34,8 @@
         <div class="tools">
             <NavLink href="@($"tools/unixtime")">Unix time</NavLink> |
             <NavLink href="@($"tools/base64")">Base64</NavLink> |
-            <a href="https://regex101.com/" target="_blank">RegEx</a> |
-            <a href="https://jwt.io/" target="_blank">JWT</a>
+            <a href="https://regex101.com/" target="_blank" rel="noreferrer">RegEx</a> |
+            <a href="https://jwt.io/" target="_blank" rel="noreferrer">JWT</a>
         </div>
 
         <div style="padding:4px;">

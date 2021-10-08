@@ -1,4 +1,5 @@
 using App.Metrics;
+using Firewall;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NtFreX.Blog.Auth;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
@@ -87,8 +89,24 @@ namespace NtFreX.Blog
             }
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            ServerCertificateSelector.Instance.SetLoggerFactory(loggerFactory);
+
+            if (env.IsProduction())
+            {
+                app.UseFirewall(FirewallRulesEngine
+                    .DenyAllAccess()
+                    .ExceptFromCloudflare()
+                    .ExceptFromLocalhost());
+            }
+            else if(env.IsDevelopment())
+            {
+                app.UseFirewall(FirewallRulesEngine
+                    .DenyAllAccess()
+                    .ExceptFromLocalhost());
+            }
+
             app.UseResponseCompression();
 
             if (env.IsDevelopment())
@@ -106,6 +124,10 @@ namespace NtFreX.Blog
             if (Blog.Configuration.BlogConfiguration.ServerSideHttpsRedirection)
             {
                 app.UseHttpsRedirection();
+            }
+            if (Blog.Configuration.BlogConfiguration.ClientSideHttpsRedirection)
+            {
+                app.UseMiddleware<ClientSideRedirectionMiddleware>();
             }
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();

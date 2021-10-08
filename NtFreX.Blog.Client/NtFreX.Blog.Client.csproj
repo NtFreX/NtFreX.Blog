@@ -3,6 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+    <!-- 
+      cloudflare compression results in differnt hashes, instead of trying to replicate the compression disable blazor integrity check 
+      in case ServiceWorker is configured to true and the app works as PWA the service-worker.published file needs to be changed as well
+    -->
+    <BlazorCacheBootResources>false</BlazorCacheBootResources>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +36,9 @@
 
   <ItemGroup>
     <Content Update="wwwroot\ads.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\decode.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\favicon.ico">

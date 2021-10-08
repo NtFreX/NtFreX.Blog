@@ -15,6 +15,7 @@
         public const string GoogleTagMeasurementId = "G-M4L2YH1KWB";
         public const string GoogleAdPublisherId = "ca-pub-2457513135434532";
         public const string GoogleAdSlotId = "2975613867";
+        public const string CloudflareToken = "0ece157d28d74e38adeeaef2f31b9c18";
         public const int MinPageLoadTimeInMs = 100;
         public const bool ClientSideHttpsRedirection = true;
         public const bool ServerSideHttpsRedirection = false;

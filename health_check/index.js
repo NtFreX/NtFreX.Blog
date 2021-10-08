@@ -18,7 +18,7 @@ exports.handler = async (event) => {
         }).on('error', (e) => {
             reject({ 
                 statusCode: 500,
-                body: JSON.stringify(exception)
+                body: JSON.stringify(e)
             });
         });        
     });

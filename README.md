@@ -27,11 +27,17 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 
 **TODO**
 
- - host own acme instance in cert renewal container
-
- - dashboard&alarms
- - IaC (dashboard alarms, mongodb, rds, elastic beanstalk, ec2 config, redis, cert renewal lambda, networking, security, dev env? sql install script?)
  - deployment pipeline with pre prod stage (pipeline for cert renewal container)
+ - host own acme instance in cert renewal container
+  
+ - dashboard&alarms
+ - add and remove nat gateway before and after cert renewal to avoid cost
+ - integration tests
+
+ - IaC (dashboard alarms, mongodb, rds, elastic beanstalk, ec2 config, redis, cert renewal lambda, networking, security, dev env? sql install script?)
+ 
+ - cleanup cloudfare cache after release
+ - static code analyzis (dependency security, code security, improvements, etc)
  - Randomize cache livetime so not all caches are invalidated at the same time
  - cache blazor pages by route
  - code first + migrations
@@ -41,4 +47,11 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
  - exclude own page visits (counts)
  - optimize db queries
  - make everything configurable
+ - swagger?
+ - lighthouse checks
+ - more logging and docu
+ - improve redirection to https
  - ...
+
+  - minify at build/release and disable for cloudflare
+  - improve css for loading tag on mobile

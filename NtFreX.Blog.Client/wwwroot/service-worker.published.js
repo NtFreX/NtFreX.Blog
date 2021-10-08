@@ -19,6 +19,8 @@ async function onInstall(event) {
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
         .map(asset => new Request(asset.url, { integrity: asset.hash }));
+        // or .map(asset => new Request(asset.url)); to disable integrity checks
+        // https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/webassembly?view=aspnetcore-5.0#disable-integrity-checking-for-pwas-1
     await caches.open(cacheName).then(cache => cache.addAll(assetsRequests));
 }
 
