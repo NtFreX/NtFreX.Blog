@@ -45,9 +45,9 @@ namespace NtFreX.Blog.Services
                     return mapper.Map<List<TagDto>>(tags);
 
                 var articles = await articleRepository.FindAsync();
-                var dtos = mapper.Map<List<ArticleDto>>(articles).Where(x => x.IsPublished());
+                var dtos = mapper.Map<List<ArticleDto>>(articles).Where(x => x.IsPublished()).ToList();
 
-                var dbModels = tags.Where(x => articles.Any(article => article.Id.ToString() == x.ArticleId)).ToList();
+                var dbModels = tags.Where(x => dtos.Any(article => article.Id.ToString() == x.ArticleId)).ToList();
                 return mapper.Map<List<TagDto>>(dbModels);
             });
         }
