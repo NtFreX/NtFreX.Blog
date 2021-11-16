@@ -20,7 +20,8 @@ namespace NtFreX.Blog.Web
         private readonly ConfigPreloader configPreloader;
         private readonly ApplicationCache cache;
 
-        private const int MaxLoginTries = 5;
+        public const int MaxLoginTries = 5;
+        public const int PersistLoginAttemptsForXHours = 24; 
 
         public LoginController(ConfigPreloader configPreloader, ApplicationCache cache)
         {
@@ -46,7 +47,7 @@ namespace NtFreX.Blog.Web
 
             if (!usersAndPasswords.ContainsKey(credentials.Username) || usersAndPasswords[credentials.Username] != credentials.Password)
             {
-                await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Username), failedLoginRequests.Value + 1, TimeSpan.FromDays(1));
+                await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Username), failedLoginRequests.Value + 1, TimeSpan.FromHours(PersistLoginAttemptsForXHours));
                 return Ok();
             } 
             else

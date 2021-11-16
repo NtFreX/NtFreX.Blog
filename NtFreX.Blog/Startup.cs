@@ -44,7 +44,8 @@ namespace NtFreX.Blog
             services.AddMetrics(metrics);
             services.AddMetricsTrackingMiddleware();
             services.AddHealthChecks()
-                    .AddCheck<CertificateExpiringHealthCheck>("SslCertificateHealthCheck");
+                    .AddCheck<CertificateExpiringHealthCheck>(nameof(CertificateExpiringHealthCheck))
+                    .AddCheck<ToManyAdminLoginAttemptsHealthCheck>(nameof(ToManyAdminLoginAttemptsHealthCheck));
 
             if (BlogConfiguration.ApplicationCacheType == CacheType.Distributed)
             {
