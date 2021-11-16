@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="AutoMapper" Version="10.1.1" />
+	<PackageReference Include="NtFreX.ConfigFlow.DotNet" Version="1.0.0" />
+	<PackageReference Include="Dapper" Version="2.0.90" />
+	<PackageReference Include="Dapper.Contrib" Version="2.0.78" />
+	<PackageReference Include="MongoDB.Bson" Version="2.13.1" />
+	<PackageReference Include="MongoDB.Driver" Version="2.13.1" />
+	<PackageReference Include="MySql.Data" Version="8.0.26" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NtFreX.Blog.Configuration\NtFreX.Blog.Configuration.csproj" />
+  </ItemGroup>
+
+</Project>

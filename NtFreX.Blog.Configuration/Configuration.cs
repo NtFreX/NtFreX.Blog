@@ -49,6 +49,9 @@
         public static string RedisConnectionString => SanitizeConfigName("NtFreX.Blog.RedisConnectionString");
         public static string SslCertPw => SanitizeConfigName($"NtFreX.Blog.{Environment.AspNetCoreEnvironment}.SslCertPw");
         public static string SslCert => SanitizeConfigName($"NtFreX.Blog.{Environment.AspNetCoreEnvironment}.SslCert");
+        public static string AdminUsername => SanitizeConfigName($"NtFreX.Blog.{Environment.AspNetCoreEnvironment}.Admin.Username");
+        public static string AdminPassword => SanitizeConfigName($"NtFreX.Blog.{Environment.AspNetCoreEnvironment}.Admin.Password");
+        public static string JwtSecret => SanitizeConfigName($"NtFreX.Blog.{Environment.AspNetCoreEnvironment}.Jwt.Secret");
 
         public static string SanitizeConfigName(string name)
             => BlogConfiguration.ConfigProvider == ConfigurationProviderType.Environment ? name.Replace(".", string.Empty).ToUpper() :

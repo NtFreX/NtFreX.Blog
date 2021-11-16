@@ -1,0 +1,56 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
+using Dapper;
+using Dapper.Contrib.Extensions;
+using MongoDB.Driver;
+using MySql.Data.MySqlClient;
+using NtFreX.Blog.Models;
+
+namespace NtFreX.Blog.Data.EfCore
+{
+    public class RelationalDbTagRepository : RelationalDbRepository<Models.TagModel, TagModel>, ITagRepository
+    {
+        private readonly MySqlDatabaseConnectionFactory connectionFactory;
+        private readonly IMapper mapper;
+
+        public RelationalDbTagRepository(MySqlDatabaseConnectionFactory connectionFactory, IMapper mapper)
+            : base(connectionFactory, mapper)
+        {
+            this.connectionFactory = connectionFactory;
+            this.mapper = mapper;
+        }
+
+        public async Task<IReadOnlyList<TagModel>> FindByArticleIdAsync(string articleId)
+        {
+            var dbModels = await connectionFactory.Connection.GetAllAsync<Models.TagModel>();
+            return mapper.Map<List<TagModel>>(dbModels.Where(x => x.ArticleId == articleId).ToList());
+        }
+
+        public async Task UpdateTagsForArticle(string[] newTags, string articleId)
+        {
+            foreach (var tag in await FindByArticleIdAsync(articleId)) 
+            {
+                await connectionFactory.Connection.DeleteAsync(mapper.Map<Models.TagModel>(tag));
+            }
+
+            foreach(var tag in newTags)
+            {
+                await connectionFactory.Connection.InsertAsync(new Models.TagModel { ArticleId = articleId, Id = Guid.NewGuid().ToString(), Name = tag });
+            }
+        }
+
+        public static void EnsureTableExists(MySqlConnection connection)
+        {
+            connection.Execute(@"
+create table if not exists `tag` (
+    `Id` varchar(255) not null unique, 
+    `ArticleId` varchar(255) not null, 
+    `Name` text, 
+    primary key ( `Id` ) 
+);");
+        }
+    }
+}

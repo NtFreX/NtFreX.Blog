@@ -29,7 +29,7 @@ namespace NtFreX.Blog
         public static async Task<(IConfigurationRoot Configuration, IConfigProvider ConfigProvider, ConfigPreloader ConfigLoader, string ReddisConnectionString)> InitializeAppAsync()
         {
             IConfigProvider configProvider = GetConfigProvider();
-            var configLoader = await ConfigPreloader.LoadAsync(configProvider, ConfigNames.MongoDbConnectionString, ConfigNames.MySqlDbConnectionString, ConfigNames.BlogDatabaseName);
+            var configLoader = await ConfigPreloader.LoadAsync(configProvider, ConfigNames.MongoDbConnectionString, ConfigNames.MySqlDbConnectionString, ConfigNames.BlogDatabaseName, ConfigNames.JwtSecret, ConfigNames.AdminUsername, ConfigNames.AdminPassword);
             var reddisConnectionString = await configProvider.GetAsync(ConfigNames.RedisConnectionString);
 
             var config = new ConfigurationBuilder()
@@ -82,7 +82,7 @@ namespace NtFreX.Blog
                             {
                                 listenOptions.UseHttps(new ServerOptionsSelectionCallback(async (stream, cientHelloInfo, state, cancelationToken) => new SslServerAuthenticationOptions
                                 {
-                                    ServerCertificate = await ServerCertificateSelector.Instance.GetCurrentCertificateAsync()
+                                    ServerCertificate = await ServerCertificateSelector.Instance.GetCertificateAsync()
                                 }), null);
                             });
                         });

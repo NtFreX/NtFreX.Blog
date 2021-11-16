@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
@@ -14,21 +15,30 @@ namespace NtFreX.Blog.Services
         private readonly IArticleRepository articleRepository;
         private readonly ITagRepository tagRepository;
         private readonly TagService tagService;
-        private readonly VisitorRepository visitorRepository;
+        private readonly IVisitorRepository visitorRepository;
+        private readonly IMapper mapper;
         private readonly ApplicationCache cache;
 
-        public ArticleService(IArticleRepository articleRepository, ITagRepository tagRepository, TagService tagService, VisitorRepository visitorRepository, ApplicationCache cache) 
+        public ArticleService(IArticleRepository articleRepository, ITagRepository tagRepository, TagService tagService, IVisitorRepository visitorRepository, IMapper mapper, ApplicationCache cache) 
         {
             this.articleRepository = articleRepository;
             this.tagRepository = tagRepository;
             this.tagService = tagService;
             this.visitorRepository = visitorRepository;
+            this.mapper = mapper;
             this.cache = cache;
+        }
+
+        private async Task<IReadOnlyList<ArticleDto>> FindAsync(bool includeUnpublished)
+        {
+            var models = await articleRepository.FindAsync();
+            var dtos = mapper.Map<List<ArticleDto>>(models);
+            return dtos.Where(x => includeUnpublished || x.IsPublished()).OrderByDescending(x => x.Date).ToList();
         }
 
         public async Task<string> CreateArticleAsync()
         {
-            var id = await articleRepository.InsertArticleAsync();
+            var id = await articleRepository.InsertAsync(new ArticleModel());
             
             await cache.RemoveSaveAsync(CacheKeys.AllArticles);
             await cache.RemoveSaveAsync(CacheKeys.AllPublishedArticles);
@@ -40,18 +50,18 @@ namespace NtFreX.Blog.Services
             => await cache.CacheAsync(
                 includeUnpublished ? CacheKeys.AllArticles : CacheKeys.AllPublishedArticles, 
                 CacheKeys.TimeToLive, 
-                async () => (await articleRepository.FindAsync(includeUnpublished)).Select(x => x.ToDto()).OrderByDescending(x => x.Date).ToList());
+                () => FindAsync(includeUnpublished));
 
         public async Task<ArticleDto> GetArticleByIdAsync(string id)
             => await cache.CacheAsync(
                 CacheKeys.Article(id),
                 CacheKeys.TimeToLive,
-                async () => (await articleRepository.FindByIdAsync(id)).ToDto());
+                async () => mapper.Map<ArticleDto>(await articleRepository.FindByIdAsync(id)));
 
         public async Task SaveArticleAsync(SaveArticleDto model)
         {
-            await articleRepository.UpdateAsync(new ArticleModel { Content = model.Article.Content, Date = model.Article.Date, Id = model.Article.Id, Published = model.Article.Published, Subtitle = model.Article.Subtitle, Title = model.Article.Title });
-            var oldTags = await tagRepository.FindAsync(model.Article.Id);
+            await articleRepository.UpdateAsync(mapper.Map<ArticleModel>(model.Article));
+            var oldTags = await tagRepository.FindByArticleIdAsync(model.Article.Id);
             foreach (var tag in model.Tags.Concat(oldTags.Select(x => x.Name)))
             {
                 await cache.RemoveSaveAsync(CacheKeys.ArticlesByTag(tag));
@@ -83,7 +93,7 @@ namespace NtFreX.Blog.Services
             => await cache.CacheAsync(
                 CacheKeys.VisitorsByArticleId(id), 
                 CacheKeys.TimeToLive, 
-                () => visitorRepository.CountAsync(id));
+                () => visitorRepository.CountByArticleIdAsync(id));
 
         public async Task<IReadOnlyList<ArticleDto>> GetTopTreeArticlesAsync(string excludeId)
         {
@@ -115,13 +125,13 @@ namespace NtFreX.Blog.Services
             // recalculate top 5 articles every day
             return await cache.CacheAsync(CacheKeys.Top5Articles, TimeSpan.FromDays(1), async () =>
             {
-                var articles = await articleRepository.FindAsync(includeUnpublished: false);
-                var withCount = await Task.WhenAll(articles.Select(async a => new { Article = a.ToDto(), Count = await CountVisitorsAsync(a.Id.ToString()) }));
+                var articles = await FindAsync(includeUnpublished: false);
+                var withCount = await Task.WhenAll(articles.Select(async a => new { Article = a, Count = await CountVisitorsAsync(a.Id.ToString()) }));
                 return withCount.OrderByDescending(x => x.Count).Select(x => x.Article).Take(5).ToList();
             });
         }
 
         private async Task<IReadOnlyList<ArticleWithVisitsDto>> WithVisitorCountAsync(IReadOnlyList<ArticleDto> articles)
-            => (await Task.WhenAll(articles.Select(async x => (Article: x, VisitorCount: await CountVisitorsAsync(x.Id))))).Select(x => new ArticleWithVisitsDto { Article = x.Article, VisitorCount = x.VisitorCount }).ToList();
+            => await Task.WhenAll(articles.Select(async x => new ArticleWithVisitsDto { Article = x, VisitorCount = await CountVisitorsAsync(x.Id) }).ToList());
     }
 }

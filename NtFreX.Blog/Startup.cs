@@ -1,4 +1,5 @@
 using App.Metrics;
+using AutoMapper;
 using Firewall;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +12,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NtFreX.Blog.Auth;
 using NtFreX.Blog.Cache;
+using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
+using NtFreX.Blog.Data.EfCore;
+using NtFreX.Blog.Data.MongoDb;
 using NtFreX.Blog.Services;
 using System;
 
@@ -42,26 +46,29 @@ namespace NtFreX.Blog
             services.AddHealthChecks()
                     .AddCheck<CertificateExpiringHealthCheck>("SslCertificateHealthCheck");
 
-            if (Blog.Configuration.BlogConfiguration.ApplicationCacheType == Blog.Configuration.CacheType.Distributed)
+            if (BlogConfiguration.ApplicationCacheType == CacheType.Distributed)
             {
                 services.AddStackExchangeRedisCache(options =>
                 {
                     options.Configuration = redisConnectionString;
                 });
             }
-            else if(Blog.Configuration.BlogConfiguration.ApplicationCacheType == Blog.Configuration.CacheType.InMemory)
+            else if(BlogConfiguration.ApplicationCacheType == CacheType.InMemory)
             {
                 services.AddMemoryCache();
             }
 
-            services.AddAuthorization(options => options.AddPolicy(AuthorizationPolicyNames.OnlyFromLocal, configure => configure.AddRequirements(new OnlyFromLocalAuthorizationRequirement())));
-            services.AddSingleton<IAuthorizationHandler, OnlyFromLocalAuthorizationHandler>();
+            services.AddAuthorization(options => options.AddPolicy(AuthorizationPolicyNames.OnlyAsAdmin, configure => configure.AddRequirements(new OnlyAsAdminAuthorizationRequirement())));
+            services.AddSingleton<IAuthorizationHandler, OnlyAsAdminAuthorizationHandler>();
             services.AddTransient<AuthorizationManager>();
+
+            services.AddAuthentication(ApplicationAuthenticationHandler.AuthenticationScheme)
+                    .AddScheme<ApplicationAuthenticationOptions, ApplicationAuthenticationHandler>(ApplicationAuthenticationHandler.AuthenticationScheme, x => { });
 
             services.AddControllersWithViews();
             services.AddRazorPages(options =>
             {
-                options.Conventions.AuthorizeFolder("/Private", AuthorizationPolicyNames.OnlyFromLocal);
+                options.Conventions.AuthorizeFolder("/Private", AuthorizationPolicyNames.OnlyAsAdmin);
             });
 
             services.AddTransient<ApplicationCache>();
@@ -69,27 +76,32 @@ namespace NtFreX.Blog
             services.AddTransient<CommentService>();
             services.AddTransient<TagService>();
 
-            if (Blog.Configuration.BlogConfiguration.PersistenceLayer == Blog.Configuration.PersistenceLayerType.MySql)
+            services.AddSingleton<IMapper>(x => new Mapper(new MapperConfiguration(configExpression => {
+                ApplictionMapperConfig.ConfigureAutomapper(configExpression);
+                Data.ApplictionMapperConfig.ConfigureAutomapper(configExpression);
+            })));
+
+            if (BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
             {
                 services.AddTransient<MySqlDatabaseConnectionFactory>();
                 services.AddTransient<ICommentRepository, RelationalDbCommentRepository>();
                 services.AddTransient<IImageRepository, RelationalDbImageRepository>();
                 services.AddTransient<IArticleRepository, RelationalDbArticleRepository>();
                 services.AddTransient<ITagRepository, RelationalDbTagRepository>();
-                services.AddTransient<VisitorRepository, RelationalDbVisitorRepository>();
+                services.AddTransient<IVisitorRepository, RelationalDbVisitorRepository>();
             }
-            else if (Blog.Configuration.BlogConfiguration.PersistenceLayer == Blog.Configuration.PersistenceLayerType.MongoDb)
+            else if (BlogConfiguration.PersistenceLayer == PersistenceLayerType.MongoDb)
             {
                 services.AddTransient<MongoDatabase>();
                 services.AddTransient<ICommentRepository, MongoDbCommentRepository>();
                 services.AddTransient<IImageRepository, MongoDbImageRepository>();
                 services.AddTransient<IArticleRepository, MongoDbArticleRepository>();
                 services.AddTransient<ITagRepository, MongoDbTagRepository>();
-                services.AddTransient<VisitorRepository, MongoDbVisitorRepository>();
+                services.AddTransient<IVisitorRepository, MongoDbVisitorRepository>();
             }
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             ServerCertificateSelector.Instance.SetLoggerFactory(loggerFactory);
 
@@ -121,17 +133,18 @@ namespace NtFreX.Blog
             }
 
             app.UseMetricsAllMiddleware();
-            if (Blog.Configuration.BlogConfiguration.ServerSideHttpsRedirection)
+            if (BlogConfiguration.ServerSideHttpsRedirection)
             {
                 app.UseHttpsRedirection();
             }
-            if (Blog.Configuration.BlogConfiguration.ClientSideHttpsRedirection)
+            if (BlogConfiguration.ClientSideHttpsRedirection)
             {
                 app.UseMiddleware<ClientSideRedirectionMiddleware>();
             }
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseResponseCaching();
             app.Use(async (context, next) =>
@@ -152,6 +165,9 @@ namespace NtFreX.Blog
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            if (BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
+                serviceProvider.GetRequiredService<MySqlDatabaseConnectionFactory>().EnsureTablesExists();
         }
     }
 }

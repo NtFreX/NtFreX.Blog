@@ -36,7 +36,8 @@ namespace NtFreX.Blog
         private bool IsCertificateExpiringInAShortTime() => DateTime.UtcNow - TimeSpan.FromDays(ReloadCertificateWhenValidLessThenXDays) > currentCertificate.NotAfter;
         private bool IsCertificateExpired() => currentCertificate != null && DateTime.UtcNow > currentCertificate.NotAfter;
 
-        public async ValueTask<X509Certificate2> GetCurrentCertificateAsync()
+        
+        public async ValueTask<X509Certificate2> GetCertificateAsync()
         {
             if(currentCertificate != null &&
                IsCertificateExpiringInAShortTime() &&

@@ -35,17 +35,32 @@ namespace NtFreX.Blog.Cache
                 }
             }
         }
+
+        public static async Task SetAsync<T>(this ApplicationCache cache, string key, T value, TimeSpan livetime)
+            => await cache.SetAsync(key, Encoding.UTF8.GetBytes(value.ToJson()), livetime);
+
+        public static async Task<(bool Success, T Value)> TryGetAsync<T>(this ApplicationCache cache, string key)
+        {
+            var cached = await cache.GetAsync(key);
+            if (cached == null)
+            {
+                return (false, default);
+            }
+
+            return (true,BsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(cached)));
+        }
+
         public static async Task<T> CacheAsync<T>(this ApplicationCache cache, string key, TimeSpan livetime, Func<Task<T>> resolver)
         {
             if (TryConnect())
             {
                 try
                 {
-                    var cached = await cache.GetAsync(key);
+                    var cached = await cache.TryGetAsync<T>(key);
                     wasAvailable = true;
-                    if (cached != null)
+                    if (cached.Success)
                     {
-                        return BsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(cached));
+                        return cached.Value;
                     }
                 }
                 catch (RedisConnectionException)
@@ -64,7 +79,7 @@ namespace NtFreX.Blog.Cache
             {
                 try
                 {
-                    await cache.SetAsync(key, Encoding.UTF8.GetBytes(value.ToJson()), livetime);
+                    await cache.SetAsync(key, value, livetime);
                     wasAvailable = true;
                 }
                 catch (RedisConnectionException)

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
@@ -12,12 +13,14 @@ namespace NtFreX.Blog.Services
     {
         private readonly ITagRepository tagRepository;
         private readonly IArticleRepository articleRepository;
+        private readonly IMapper mapper;
         private readonly ApplicationCache cache;
 
-        public TagService(ITagRepository tagRepository, IArticleRepository articleRepository, ApplicationCache cache)
+        public TagService(ITagRepository tagRepository, IArticleRepository articleRepository, IMapper mapper, ApplicationCache cache)
         {
             this.tagRepository = tagRepository;
             this.articleRepository = articleRepository;
+            this.mapper = mapper;
             this.cache = cache;
         }
 
@@ -39,10 +42,13 @@ namespace NtFreX.Blog.Services
             {
                 var tags = await tagRepository.FindAsync();
                 if (includeUnpublished)
-                    return tags.Select(x => x.ToDto()).ToList();
+                    return mapper.Map<List<TagDto>>(tags);
 
-                var articles = await articleRepository.FindAsync(includeUnpublished);
-                return tags.Where(x => articles.Any(article => article.Id.ToString() == x.ArticleId)).Select(x => x.ToDto()).ToList();
+                var articles = await articleRepository.FindAsync();
+                var dtos = mapper.Map<List<ArticleDto>>(articles).Where(x => x.IsPublished());
+
+                var dbModels = tags.Where(x => articles.Any(article => article.Id.ToString() == x.ArticleId)).ToList();
+                return mapper.Map<List<TagDto>>(dbModels);
             });
         }
 
@@ -50,7 +56,7 @@ namespace NtFreX.Blog.Services
             => await cache.CacheAsync(
                 CacheKeys.TagsByArticleId(articleId),
                 CacheKeys.TimeToLive,
-                async () => (await tagRepository.FindAsync(articleId)).Select(x => x.ToDto()).ToList());
+                async () => mapper.Map<List<TagDto>>(await tagRepository.FindByArticleIdAsync(articleId)));
 
         public async Task<IReadOnlyList<string>> GetAllDistinctTagsAsync(bool includeUnpublished)
         {

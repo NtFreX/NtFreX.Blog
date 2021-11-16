@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
@@ -12,11 +13,13 @@ namespace NtFreX.Blog.Services
     public class CommentService
     {
         private readonly ICommentRepository commentRepository;
+        private readonly IMapper mapper;
         private readonly ApplicationCache cache;
 
-        public CommentService(ICommentRepository commentRepository, ApplicationCache cache)
+        public CommentService(ICommentRepository commentRepository, IMapper mapper, ApplicationCache cache)
         {
             this.commentRepository = commentRepository;
+            this.mapper = mapper;
             this.cache = cache;
         }
 
@@ -25,22 +28,17 @@ namespace NtFreX.Blog.Services
         {
             return await cache.CacheAsync(CacheKeys.CommentsByArticleId(id), CacheKeys.TimeToLive, async () =>
             {
-                var dbModels = await commentRepository.GetCommentsByArticleIdAsync(id);
-                return dbModels.Select(x => x.ToDto()).ToList();
+                var dbModels = await commentRepository.FindByArticleIdAsync(id);
+                return mapper.Map<List<CommentDto>>(dbModels).OrderByDescending(x => x.Date).ToList();
             });            
         }
 
         public async Task InsertCommentAsync(CreateCommentDto model)
         {
-            var dbModel = new CommentModel
-            {
-                Date = DateTime.UtcNow,
-                Content = model.Content,
-                ArticleId = model.ArticleId,
-                Title = model.Title,
-                User = model.User
-            };
-            await commentRepository.InsertCommentAsync(dbModel);
+            var dbModel = mapper.Map<CommentModel>(model);
+            dbModel.Date = DateTime.UtcNow;
+
+            await commentRepository.InsertAsync(dbModel);
             await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
         }
     }
