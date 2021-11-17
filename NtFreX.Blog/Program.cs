@@ -1,4 +1,3 @@
-using App.Metrics.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NtFreX.Blog.Configuration;
 using NtFreX.ConfigFlow.DotNet;
+using OpenTelemetry.Logs;
 using System;
 using System.Net;
 using System.Net.Security;
@@ -65,13 +65,11 @@ namespace NtFreX.Blog
             ServerCertificateSelector.Instance.SetConfigProvider(configProvider);
 
             return Host.CreateDefaultBuilder(args)
-                 .ConfigureLogging(logging =>
-                 {
-                     logging
-                        .AddConsole();
-                 })
-                .UseMetrics()
-                .UseMetricsWebTracking()
+                .ConfigureLogging(logging => 
+                {
+                    logging.ClearProviders();
+                    logging.AddOpenTelemetry(options => options.AddConsoleExporter());
+                })
                 .ConfigureWebHostDefaults(webHost =>
                 {
                     ConfigureWebHostBuilder(webHost, configuration, configProvider, configLoader, reddisConnectionString)

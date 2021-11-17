@@ -36,6 +36,7 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 
  - IaC (dashboard alarms, mongodb, rds, elastic beanstalk, ec2 config, redis, cert renewal lambda, networking, security, dev env? sql install script?)
  
+ - opentelemetry-dotnet, maybe also for lambda (https://aws.amazon.com/blogs/opensource/aws-distro-for-opentelemetry-adds-net-tracing-support/, https://github.com/open-telemetry/opentelemetry-dotnet)
  - cleanup cloudfare cache after release
  - static code analyzis (dependency security, code security, improvements, etc)
  - Randomize cache livetime so not all caches are invalidated at the same time

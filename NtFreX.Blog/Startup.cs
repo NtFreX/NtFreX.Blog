@@ -1,11 +1,9 @@
-using App.Metrics;
 using AutoMapper;
 using Firewall;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,6 +15,9 @@ using NtFreX.Blog.Data;
 using NtFreX.Blog.Data.EfCore;
 using NtFreX.Blog.Data.MongoDb;
 using NtFreX.Blog.Services;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using StackExchange.Redis;
 using System;
 
 namespace NtFreX.Blog
@@ -40,9 +41,29 @@ namespace NtFreX.Blog
 
             services.AddHttpContextAccessor();
 
-            var metrics = AppMetrics.CreateDefaultBuilder().Build();
-            services.AddMetrics(metrics);
-            services.AddMetricsTrackingMiddleware();
+            services.AddOpenTelemetryMetrics(builder =>
+            {
+                builder
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddMeter(BlogConfiguration.MetricsName)
+                    .AddPrometheusExporter();
+            });
+
+            services.AddOpenTelemetryTracing(builder => {
+                builder
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddSqlClientInstrumentation()
+                    .AddSource(BlogConfiguration.ActivitySourceName)
+                    .AddConsoleExporter();
+
+                if(BlogConfiguration.ApplicationCacheType == CacheType.Distributed)
+                {
+                    builder.AddRedisInstrumentation(ConnectionMultiplexer.Connect(redisConnectionString));
+                }
+            });
+
             services.AddHealthChecks()
                     .AddCheck<CertificateExpiringHealthCheck>(nameof(CertificateExpiringHealthCheck))
                     .AddCheck<ToManyAdminLoginAttemptsHealthCheck>(nameof(ToManyAdminLoginAttemptsHealthCheck));
@@ -58,7 +79,7 @@ namespace NtFreX.Blog
             {
                 services.AddMemoryCache();
             }
-
+                        
             services.AddAuthorization(options => options.AddPolicy(AuthorizationPolicyNames.OnlyAsAdmin, configure => configure.AddRequirements(new OnlyAsAdminAuthorizationRequirement())));
             services.AddSingleton<IAuthorizationHandler, OnlyAsAdminAuthorizationHandler>();
             services.AddTransient<AuthorizationManager>();
@@ -133,7 +154,6 @@ namespace NtFreX.Blog
                 app.UseHsts();
             }
 
-            app.UseMetricsAllMiddleware();
             if (BlogConfiguration.ServerSideHttpsRedirection)
             {
                 app.UseHttpsRedirection();
@@ -159,6 +179,11 @@ namespace NtFreX.Blog
 
                 await next();
             });
+            if(env.IsDevelopment())
+            {
+                app.UseOpenTelemetryPrometheusScrapingEndpoint();
+            }
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHealthChecks("/health");

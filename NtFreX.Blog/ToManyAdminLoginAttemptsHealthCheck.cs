@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace NtFreX.Blog
 {
-    public class ToManyAdminLoginAttemptsHealthCheck : IHealthCheck
+    public class ToManyAdminLoginAttemptsHealthCheck : ApplicationHealthCheck
     {
         private readonly ApplicationCache cache;
         private readonly ConfigPreloader config;
@@ -19,7 +19,7 @@ namespace NtFreX.Blog
             this.config = config;
         }
 
-        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        public override async Task<HealthCheckResult> DoCheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             var adminUsername = config.Get(ConfigNames.AdminUsername);
             var attempts = await cache.TryGetAsync<int>(CacheKeys.FailedLoginRequests(adminUsername));

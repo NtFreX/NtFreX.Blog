@@ -25,6 +25,8 @@
         public const int HttpsPort = 5001;
         public const int HttpPort = 5000;
         public const CacheType ApplicationCacheType = CacheType.InMemory;
+        public const string MetricsName = "ApplicationMetrics";
+        public const string ActivitySourceName = "ApplicationActivitySource";
     }
 
     public sealed class Constants
