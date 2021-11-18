@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using NtFreX.Blog.Configuration;
 using NtFreX.ConfigFlow.DotNet;
 using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -42,24 +44,40 @@ namespace NtFreX.Blog.Auth
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
+            using (var sampleActivity = activitySource.StartActivity($"{nameof(ApplicationAuthenticationHandler)}.{nameof(HandleAuthenticateAsync)}", ActivityKind.Server))
+            {
+                sampleActivity.AddBaggage("Environment.MachineName", System.Environment.MachineName);
+
+                var authenticationResult = TryAuthenticate();
+
+                var meter = new Meter(BlogConfiguration.MetricsName);
+                meter.CreateObservableGauge($"RequestAuthenticated", () => new[] { new Measurement<int>(authenticationResult.Succeeded ? 1 : 0) }, "0 = the requests is unauthenticated, 1 = the request is authenticated");
+
+                return Task.FromResult(authenticationResult);
+            }
+        }
+
+        private AuthenticateResult TryAuthenticate()
+        {
             var headers = httpContextAccessor?.HttpContext?.Request?.Headers;
-            if (headers == null || 
+            if (headers == null ||
                 !headers.ContainsKey(AuthorizationHeader) ||
                 headers[AuthorizationHeader].Count == 0)
-                return Task.FromResult(AuthenticateResult.Fail("No authorization header exists in the request header"));
+                return AuthenticateResult.Fail("No authorization header exists in the request header");
 
             var token = headers[AuthorizationHeader][0].Split(' ');
             if (token.Length != 2)
-                return Task.FromResult(AuthenticateResult.Fail($"The authorization token must start with '{AuthenticationScheme} '"));
+                return AuthenticateResult.Fail($"The authorization token must start with '{AuthenticationScheme} '");
 
             var validationResult = IsTokenValid(token[1]);
             if (!validationResult.Success || validationResult.Principal == null)
-                return Task.FromResult(AuthenticateResult.Fail("The authorization token is invalid"));
+                return AuthenticateResult.Fail("The authorization token is invalid");
 
             logger.LogInformation($"The given authorization token is valid, user {validationResult.Principal.Claims.First(x => x.Type == "id").Value} was authenticated.");
 
             var ticket = new AuthenticationTicket(validationResult.Principal, AuthenticationScheme);
-            return Task.FromResult(AuthenticateResult.Success(ticket));
+            return AuthenticateResult.Success(ticket);
         }
 
         private (bool Success, ClaimsPrincipal Principal) IsTokenValid(string token)

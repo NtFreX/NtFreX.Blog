@@ -1,4 +1,4 @@
-This is the source code of my blog. See it live here: https://ntfrex.com
+This is the source code of my blog. A great place to test things in a used production environment. See it live here: https://ntfrex.com
 
 **Build and run localy**
 
@@ -11,10 +11,10 @@ docker-compose -f .\infrastructure\dev\local_infra.yaml up --force-recreate --ab
 dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 ```
 
-browse https://localhost:5001/ to view the blog
-browse http://localhost:9411/ for Zipkin
-browse http://localhost:9090/ for Prometheus
-mysql is running on 127.0.0.1:3306
+ - browse https://localhost:5001/ to view the blog
+ - browse http://localhost:9411/ for Zipkin
+ - browse http://localhost:9090/ for Prometheus
+ - mysql is running on 127.0.0.1:3306
 
 **Dependencies**
 

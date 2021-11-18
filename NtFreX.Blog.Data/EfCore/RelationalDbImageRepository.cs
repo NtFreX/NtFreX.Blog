@@ -1,11 +1,11 @@
-﻿using System;
+﻿using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Dapper;
 using Dapper.Contrib.Extensions;
-using MongoDB.Bson;
 using MySql.Data.MySqlClient;
+using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Models;
 
 namespace NtFreX.Blog.Data.EfCore
@@ -24,8 +24,12 @@ namespace NtFreX.Blog.Data.EfCore
 
         public async Task<ImageModel> FindByName(string name)
         {
-            var dbModels = await connectionFactory.Connection.GetAllAsync<Models.ImageModel>();
-            return mapper.Map<ImageModel>(dbModels.First(x => x.Name == name));
+            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
+            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbImageRepository)}.{nameof(FindByName)}", ActivityKind.Server))
+            {
+                var dbModels = await connectionFactory.Connection.GetAllAsync<Models.ImageModel>();
+                return mapper.Map<ImageModel>(dbModels.First(x => x.Name == name));
+            }
         }
 
         public static void EnsureTableExists(MySqlConnection connection)

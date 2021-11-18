@@ -17,6 +17,7 @@ using NtFreX.Blog.Data.EfCore;
 using NtFreX.Blog.Data.MongoDb;
 using NtFreX.Blog.Services;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
+using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -62,10 +63,23 @@ namespace NtFreX.Blog
                     builder.AddOtlpExporter(options => options.Endpoint = new Uri(BlogConfiguration.OtlpMetricsExporterPath));
                 }
             });
-             
+
+            services.Configure<AspNetCoreInstrumentationOptions>(x =>
+            {
+                x.Enrich = (activity, eventName, rawObject) =>
+                {
+                    if (eventName.Equals("OnStartActivity"))
+                    {
+                        if (rawObject is HttpRequest httpRequest)
+                        {
+                            activity.SetBaggage("http.path", httpRequest.Path);
+                        }
+                    }
+                };
+            });
+
             services.AddOpenTelemetryTracing(builder => {
-                var resourceBuilder = ResourceBuilder
-                            .CreateDefault();
+                var resourceBuilder = ResourceBuilder.CreateDefault();
 
                 if (BlogConfiguration.IsAwsEC2)
                     resourceBuilder.AddDetector(new AWSEC2ResourceDetector());

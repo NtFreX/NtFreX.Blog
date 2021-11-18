@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
+using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Models;
 
@@ -47,33 +49,49 @@ namespace NtFreX.Blog.Services
         }
 
         public async Task<IReadOnlyList<ArticleDto>> GetAllArticlesAsync(bool includeUnpublished)
-            => await cache.CacheAsync(
-                includeUnpublished ? CacheKeys.AllArticles : CacheKeys.AllPublishedArticles, 
-                CacheKeys.TimeToLive, 
-                () => FindAsync(includeUnpublished));
+        {
+            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
+            using (var sampleActivity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(GetAllArticlesAsync)}", ActivityKind.Server))
+            {
+                return await cache.CacheAsync(
+                    includeUnpublished ? CacheKeys.AllArticles : CacheKeys.AllPublishedArticles,
+                    CacheKeys.TimeToLive,
+                    () => FindAsync(includeUnpublished));
+            }
+        }
 
         public async Task<ArticleDto> GetArticleByIdAsync(string id)
-            => await cache.CacheAsync(
-                CacheKeys.Article(id),
-                CacheKeys.TimeToLive,
-                async () => mapper.Map<ArticleDto>(await articleRepository.FindByIdAsync(id)));
+        {
+            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
+            using (var sampleActivity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(GetArticleByIdAsync)}", ActivityKind.Server))
+            {
+                return await cache.CacheAsync(
+                    CacheKeys.Article(id),
+                    CacheKeys.TimeToLive,
+                    async () => mapper.Map<ArticleDto>(await articleRepository.FindByIdAsync(id)));
+            }
+        }
 
         public async Task SaveArticleAsync(SaveArticleDto model)
         {
-            await articleRepository.UpdateAsync(mapper.Map<ArticleModel>(model.Article));
-            var oldTags = await tagRepository.FindByArticleIdAsync(model.Article.Id);
-            foreach (var tag in model.Tags.Concat(oldTags.Select(x => x.Name)))
+            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
+            using (var sampleActivity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(SaveArticleAsync)}", ActivityKind.Server))
             {
-                await cache.RemoveSaveAsync(CacheKeys.ArticlesByTag(tag));
-                await cache.RemoveSaveAsync(CacheKeys.PublishedArticlesByTag(tag));
+                await articleRepository.UpdateAsync(mapper.Map<ArticleModel>(model.Article));
+                var oldTags = await tagRepository.FindByArticleIdAsync(model.Article.Id);
+                foreach (var tag in model.Tags.Concat(oldTags.Select(x => x.Name)))
+                {
+                    await cache.RemoveSaveAsync(CacheKeys.ArticlesByTag(tag));
+                    await cache.RemoveSaveAsync(CacheKeys.PublishedArticlesByTag(tag));
+                }
+
+                await cache.RemoveSaveAsync(CacheKeys.Article(model.Article.Id));
+                await cache.RemoveSaveAsync(CacheKeys.AllArticles);
+                await cache.RemoveSaveAsync(CacheKeys.AllPublishedArticles);
+
+                // Careful: referencing TagService here could lead to circular references
+                await tagService.UpdateTagsForArticelAsync(model);
             }
-
-            await cache.RemoveSaveAsync(CacheKeys.Article(model.Article.Id));
-            await cache.RemoveSaveAsync(CacheKeys.AllArticles);
-            await cache.RemoveSaveAsync(CacheKeys.AllPublishedArticles);
-
-            // Careful: referencing TagService here could lead to circular references
-            await tagService.UpdateTagsForArticelAsync(model);
         }
 
         public async Task VisitArticleAsync(string id, string remoteIp, string userAgent)

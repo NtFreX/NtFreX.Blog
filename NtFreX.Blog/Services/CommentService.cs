@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
+using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Models;
 
@@ -35,11 +37,15 @@ namespace NtFreX.Blog.Services
 
         public async Task InsertCommentAsync(CreateCommentDto model)
         {
-            var dbModel = mapper.Map<CommentModel>(model);
-            dbModel.Date = DateTime.UtcNow;
+            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
+            using (var sampleActivity = activitySource.StartActivity($"{nameof(CommentService)}.{nameof(InsertCommentAsync)}", ActivityKind.Server))
+            {
+                var dbModel = mapper.Map<CommentModel>(model);
+                dbModel.Date = DateTime.UtcNow;
 
-            await commentRepository.InsertAsync(dbModel);
-            await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
+                await commentRepository.InsertAsync(dbModel);
+                await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
+            }
         }
     }
 }
