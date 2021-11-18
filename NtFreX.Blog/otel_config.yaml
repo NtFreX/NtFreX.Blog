@@ -1,0 +1,36 @@
+﻿extensions:
+  health_check:
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch/metrics:
+    timeout: 60s
+
+exporters:
+  logging:
+  awsxray:
+  awsemf:
+    namespace: EBS/NtFreXBlog
+    log_group_name: '/aws/elasticbeanstalk/NtFreXBlog/metrics'
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [awsxray]
+    metrics:
+      receivers: [otlp]
+      processors: [batch/metrics]
+      exporters: [awsemf]
+    logs:
+      receivers: [otlp]
+      processors: []
+      exporters: [logging]
+
+  extensions: [health_check]

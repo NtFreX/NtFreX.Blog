@@ -27,6 +27,13 @@
         public const CacheType ApplicationCacheType = CacheType.InMemory;
         public const string MetricsName = "ApplicationMetrics";
         public const string ActivitySourceName = "ApplicationActivitySource";
+        public const bool UsePrometheusScrapingEndpoint = false;
+        public const string OtlpLogExporterPath = "http://localhost:4317";
+        public const string OtlpMetricsExporterPath = "http://localhost:4317";
+        public static string OtlpTraceExporterPath => Environment.IsDevelopment() ? "http://localhost:4317" : "http://localhost:2000";
+        public const bool IsAwsLambda = false;
+        public const bool IsAwsEC2 = false;
+        public static bool IsAwsEBS => Environment.IsProduction();
     }
 
     public sealed class Constants
@@ -64,6 +71,9 @@
     public sealed class Environment
     {
         public static string AspNetCoreEnvironment => System.Environment.GetEnvironmentVariable(EnvironmentVariables.AspNetCoreEnvironment);
+
+        public static bool IsDevelopment() => AspNetCoreEnvironment == "Development";
+        public static bool IsProduction() => AspNetCoreEnvironment == "Production";
     }
 
     public enum CacheType

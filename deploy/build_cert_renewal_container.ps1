@@ -9,5 +9,5 @@ docker build `
  --build-arg DbHostVariable="" `
  --build-arg DbUserVariable="" `
  --build-arg DbPasswordVariable="" `
- -t ntfrex/certrenewal `
- ./cert_renewal
+ -t ntfrexcertrenewal `
+ ../infrastructure/prod/cert_renewal

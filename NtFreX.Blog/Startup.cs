@@ -1,4 +1,5 @@
 using AutoMapper;
+using Dapper;
 using Firewall;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -15,10 +16,13 @@ using NtFreX.Blog.Data;
 using NtFreX.Blog.Data.EfCore;
 using NtFreX.Blog.Data.MongoDb;
 using NtFreX.Blog.Services;
+using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using System;
+using System.IO;
 
 namespace NtFreX.Blog
 {
@@ -46,17 +50,42 @@ namespace NtFreX.Blog
                 builder
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddMeter(BlogConfiguration.MetricsName)
-                    .AddPrometheusExporter();
-            });
+                    .AddMeter(BlogConfiguration.MetricsName);
 
+                if(BlogConfiguration.UsePrometheusScrapingEndpoint)
+                {
+                    builder.AddPrometheusExporter();
+                }
+
+                if (!string.IsNullOrEmpty(BlogConfiguration.OtlpMetricsExporterPath))
+                {
+                    builder.AddOtlpExporter(options => options.Endpoint = new Uri(BlogConfiguration.OtlpMetricsExporterPath));
+                }
+            });
+             
             services.AddOpenTelemetryTracing(builder => {
+                var resourceBuilder = ResourceBuilder
+                            .CreateDefault();
+
+                if (BlogConfiguration.IsAwsEC2)
+                    resourceBuilder.AddDetector(new AWSEC2ResourceDetector());
+                if (BlogConfiguration.IsAwsEBS)
+                    resourceBuilder.AddDetector(new AWSEBSResourceDetector());
+                if(BlogConfiguration.IsAwsLambda)
+                    resourceBuilder.AddDetector(new AWSLambdaResourceDetector());
+
                 builder
+                    .AddXRayTraceId()
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddSqlClientInstrumentation()
                     .AddSource(BlogConfiguration.ActivitySourceName)
-                    .AddConsoleExporter();
+                    .SetResourceBuilder(resourceBuilder);
+
+                if (!string.IsNullOrEmpty(BlogConfiguration.OtlpTraceExporterPath))
+                {
+                    builder.AddOtlpExporter(options => options.Endpoint = new Uri(BlogConfiguration.OtlpTraceExporterPath));
+                }
 
                 if(BlogConfiguration.ApplicationCacheType == CacheType.Distributed)
                 {
@@ -179,7 +208,8 @@ namespace NtFreX.Blog
 
                 await next();
             });
-            if(env.IsDevelopment())
+
+            if (BlogConfiguration.UsePrometheusScrapingEndpoint)
             {
                 app.UseOpenTelemetryPrometheusScrapingEndpoint();
             }
@@ -192,8 +222,27 @@ namespace NtFreX.Blog
                 endpoints.MapFallbackToPage("/_Host");
             });
 
-            if (BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
-                serviceProvider.GetRequiredService<MySqlDatabaseConnectionFactory>().EnsureTablesExists();
+            // TODO: replace with data layer and ef
+            if (env.IsDevelopment() && BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
+            {
+                var connectionFactory = serviceProvider.GetRequiredService<MySqlDatabaseConnectionFactory>();
+                connectionFactory.EnsureTablesExists();
+
+                try
+                {
+                    foreach (var row in File.ReadAllLines("dev_data.sql"))
+                    {
+                        if (!string.IsNullOrEmpty(row))
+                        {
+                            connectionFactory.Connection.Execute(row);
+                        }
+                    }
+                }
+                catch
+                {
+                    /* seed only once */
+                }
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ namespace NtFreX.Blog
             using (var sampleActivity = activitySource.StartActivity(activityName, ActivityKind.Server))
             {
                 sampleActivity.AddBaggage("HealthCheckName", healthCheckName);
+                sampleActivity.AddBaggage("Environment.MachineName", System.Environment.MachineName);;
 
                 var result = await DoCheckHealthAsync(context, cancellationToken);
                 var meter = new Meter(BlogConfiguration.MetricsName);

@@ -68,7 +68,14 @@ namespace NtFreX.Blog
                 .ConfigureLogging(logging => 
                 {
                     logging.ClearProviders();
-                    logging.AddOpenTelemetry(options => options.AddConsoleExporter());
+                    logging.AddLambdaLogger(configuration.GetSection("Logging").Get<LambdaLoggerOptions>());
+                    logging.AddOpenTelemetry(options =>
+                    {
+                        if (!string.IsNullOrEmpty(BlogConfiguration.OtlpLogExporterPath))
+                        {
+                            options.AddOtlpExporter(options => options.Endpoint = new Uri(BlogConfiguration.OtlpLogExporterPath));
+                        }
+                    });
                 })
                 .ConfigureWebHostDefaults(webHost =>
                 {

@@ -6,7 +6,7 @@
       "applicationUrl": "https://localhost:5001",
       "environmentVariables": {
         "NtFrexMySqlConfigUser": "root",
-        "NtFrexMySqlConfigServer": "localhost",
+        "NtFrexMySqlConfigServer": "127.0.0.1",
         "NtFrexMySqlConfigPw": "",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
