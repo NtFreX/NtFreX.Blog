@@ -8,12 +8,14 @@ using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
+using NtFreX.Blog.Logging;
 using NtFreX.Blog.Models;
 
 namespace NtFreX.Blog.Services
 {
     public class ArticleService
     {
+        private readonly TraceActivityDecorator traceActivityDecorator;
         private readonly IArticleRepository articleRepository;
         private readonly ITagRepository tagRepository;
         private readonly TagService tagService;
@@ -21,8 +23,9 @@ namespace NtFreX.Blog.Services
         private readonly IMapper mapper;
         private readonly ApplicationCache cache;
 
-        public ArticleService(IArticleRepository articleRepository, ITagRepository tagRepository, TagService tagService, IVisitorRepository visitorRepository, IMapper mapper, ApplicationCache cache) 
+        public ArticleService(TraceActivityDecorator traceActivityDecorator, IArticleRepository articleRepository, ITagRepository tagRepository, TagService tagService, IVisitorRepository visitorRepository, IMapper mapper, ApplicationCache cache) 
         {
+            this.traceActivityDecorator = traceActivityDecorator;
             this.articleRepository = articleRepository;
             this.tagRepository = tagRepository;
             this.tagService = tagService;
@@ -51,8 +54,10 @@ namespace NtFreX.Blog.Services
         public async Task<IReadOnlyList<ArticleDto>> GetAllArticlesAsync(bool includeUnpublished)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(GetAllArticlesAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(GetAllArticlesAsync)}", ActivityKind.Server))
             {
+                traceActivityDecorator.Decorate(activity);
+
                 return await cache.CacheAsync(
                     includeUnpublished ? CacheKeys.AllArticles : CacheKeys.AllPublishedArticles,
                     CacheKeys.TimeToLive,
@@ -63,8 +68,10 @@ namespace NtFreX.Blog.Services
         public async Task<ArticleDto> GetArticleByIdAsync(string id)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(GetArticleByIdAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(GetArticleByIdAsync)}", ActivityKind.Server))
             {
+                traceActivityDecorator.Decorate(activity);
+
                 return await cache.CacheAsync(
                     CacheKeys.Article(id),
                     CacheKeys.TimeToLive,
@@ -75,8 +82,10 @@ namespace NtFreX.Blog.Services
         public async Task SaveArticleAsync(SaveArticleDto model)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(SaveArticleAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(ArticleService)}.{nameof(SaveArticleAsync)}", ActivityKind.Server))
             {
+                traceActivityDecorator.Decorate(activity);
+
                 await articleRepository.UpdateAsync(mapper.Map<ArticleModel>(model.Article));
                 var oldTags = await tagRepository.FindByArticleIdAsync(model.Article.Id);
                 foreach (var tag in model.Tags.Concat(oldTags.Select(x => x.Name)))

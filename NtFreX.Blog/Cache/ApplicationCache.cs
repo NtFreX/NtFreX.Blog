@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
@@ -7,17 +8,20 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NtFreX.Blog.Configuration;
+using NtFreX.Blog.Logging;
 
 namespace NtFreX.Blog.Cache
 {
     public class ApplicationCache
     {
+        private readonly TraceActivityDecorator traceActivityDecorator;
         private readonly IMemoryCache memoryCache;
         private readonly IDistributedCache distributedCache;
         private readonly ILogger<ApplicationCache> logger;
 
-        public ApplicationCache(IMemoryCache memoryCache, IDistributedCache distributedCache, ILogger<ApplicationCache> logger)
+        public ApplicationCache(TraceActivityDecorator traceActivityDecorator, IMemoryCache memoryCache, IDistributedCache distributedCache, ILogger<ApplicationCache> logger)
         {
+            this.traceActivityDecorator = traceActivityDecorator;
             this.memoryCache = memoryCache;
             this.distributedCache = distributedCache;
             this.logger = logger;
@@ -41,12 +45,12 @@ namespace NtFreX.Blog.Cache
         public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(ApplicationCache)}.{nameof(GetAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(ApplicationCache)}.{nameof(GetAsync)}", ActivityKind.Server))
             {
-                logger.LogTrace($"TraceId={sampleActivity.TraceId}: Requesting cache for key {key}");
+                logger.LogTrace($"TraceId={activity.TraceId}: Requesting cache for key {key}");
 
-                sampleActivity.AddBaggage("Environment.MachineName", System.Environment.MachineName);
-                sampleActivity.AddTag("CacheKey", key);
+                traceActivityDecorator.Decorate(activity);
+                activity.AddTag("cacheKey", key);
 
                 var cacheResult = BlogConfiguration.ApplicationCacheType switch
                 {
@@ -56,9 +60,16 @@ namespace NtFreX.Blog.Cache
                 };
 
                 var meter = new Meter(BlogConfiguration.MetricsName);
-                meter.CreateObservableGauge($"CacheHit.{key}", () => new[] { new Measurement<int>(cacheResult == null ? 0 : 1) }, "0 = cache has not been hit, 1 = cache has been hit");
+                meter.CreateObservableGauge(
+                    $"CacheHit", 
+                    () => new Measurement<int>(
+                        cacheResult == null ? 0 : 1, 
+                        new KeyValuePair<string, object>("key", key),
+                        new KeyValuePair<string, object>("machine", System.Environment.MachineName),
+                        new KeyValuePair<string, object>("type", BlogConfiguration.ApplicationCacheType.ToString())), 
+                    "0 = cache has not been hit, 1 = cache has been hit");
 
-                logger.LogDebug($"TraceId={sampleActivity.TraceId}: Hitting cache for key {key} {(cacheResult == null ? "didn't" : "did")} return a value");
+                logger.LogDebug($"Hitting cache for key {key} {(cacheResult == null ? "didn't" : "did")} return a value");
 
                 return cacheResult;
             }
@@ -67,9 +78,12 @@ namespace NtFreX.Blog.Cache
         public async Task RemoveAsync(string key, CancellationToken token = default)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(ApplicationCache)}.{nameof(GetAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(ApplicationCache)}.{nameof(GetAsync)}", ActivityKind.Server))
             {
-                logger.LogInformation($"TraceId={sampleActivity.TraceId}: Removing cached value for key {key}");
+                traceActivityDecorator.Decorate(activity);
+                activity.AddTag("cacheKey", key);
+
+                logger.LogInformation($"Removing cached value for key {key}");
 
                 switch (BlogConfiguration.ApplicationCacheType)
                 {

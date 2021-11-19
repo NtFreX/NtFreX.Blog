@@ -25,7 +25,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task<IReadOnlyList<TModel>> FindAsync()
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(FindAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(FindAsync)}", ActivityKind.Server))
             {
                 var dbModels = await connectionFactory.Connection.GetAllAsync<TDbModel>();
                 return mapper.Map<List<TModel>>(dbModels.ToList());
@@ -35,7 +35,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task<TModel> FindByIdAsync(string id)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(FindByIdAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(FindByIdAsync)}", ActivityKind.Server))
             {
                 var dbModel = await connectionFactory.Connection.GetAsync<TDbModel>(id);
                 return mapper.Map<TModel>(dbModel);
@@ -45,7 +45,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task<string> InsertAsync(TModel model)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(InsertAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(InsertAsync)}", ActivityKind.Server))
             {
                 var dbModel = mapper.Map<TDbModel>(model);
                 dbModel.Id = Guid.NewGuid().ToString();
@@ -58,7 +58,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task UpdateAsync(TModel model)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(UpdateAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(UpdateAsync)}", ActivityKind.Server))
             {
                 var dbModel = mapper.Map<TDbModel>(model);
                 await connectionFactory.Connection.UpdateAsync(dbModel);
@@ -68,7 +68,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task InsertOrUpdate(TModel model)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(InsertOrUpdate)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(InsertOrUpdate)}", ActivityKind.Server))
             {
                 var dbModel = mapper.Map<TDbModel>(model);
                 if (!string.IsNullOrEmpty(dbModel.Id) && await connectionFactory.Connection.GetAsync<TDbModel>(dbModel.Id) != null)

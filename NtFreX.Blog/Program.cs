@@ -3,7 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Config;
+using NLog.Web;
 using NtFreX.Blog.Configuration;
+using NtFreX.Blog.Logging;
 using NtFreX.ConfigFlow.DotNet;
 using OpenTelemetry.Logs;
 using System;
@@ -55,9 +59,27 @@ namespace NtFreX.Blog
 
         public static async Task Main(string[] args)
         {
-            var app = await InitializeAppAsync();
-            var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);
-            await host.RunAsync();
+            ConfigurationItemFactory.Default.LayoutRenderers.RegisterDefinition("ntfrex-traceId", typeof(TraceIdLayoutRenderer));
+            ConfigurationItemFactory.Default.LayoutRenderers.RegisterDefinition("ntfrex-user", typeof(UserLayoutRenderer));
+
+            var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+            try
+            {
+                logger.Debug("init main");
+
+                var app = await InitializeAppAsync();
+                var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);
+                await host.RunAsync();
+            }
+            catch (Exception exception)
+            {
+                logger.Error(exception, "Stopped program because of exception");
+                throw;
+            }
+            finally
+            {
+                LogManager.Shutdown();
+            }
         }
 
         public static IHost CreateHost(string[] args, IConfigurationRoot configuration, IConfigProvider configProvider, ConfigPreloader configLoader, string reddisConnectionString)
@@ -68,7 +90,6 @@ namespace NtFreX.Blog
                 .ConfigureLogging(logging => 
                 {
                     logging.ClearProviders();
-                    logging.AddLambdaLogger(configuration.GetSection("Logging").Get<LambdaLoggerOptions>());
                     logging.AddOpenTelemetry(options =>
                     {
                         if (!string.IsNullOrEmpty(BlogConfiguration.OtlpLogExporterPath))
@@ -77,6 +98,7 @@ namespace NtFreX.Blog
                         }
                     });
                 })
+                .UseNLog()
                 .ConfigureWebHostDefaults(webHost =>
                 {
                     ConfigureWebHostBuilder(webHost, configuration, configProvider, configLoader, reddisConnectionString)

@@ -8,18 +8,21 @@ using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
+using NtFreX.Blog.Logging;
 using NtFreX.Blog.Models;
 
 namespace NtFreX.Blog.Services
 {
     public class CommentService
     {
+        private readonly TraceActivityDecorator traceActivityDecorator;
         private readonly ICommentRepository commentRepository;
         private readonly IMapper mapper;
         private readonly ApplicationCache cache;
 
-        public CommentService(ICommentRepository commentRepository, IMapper mapper, ApplicationCache cache)
+        public CommentService(TraceActivityDecorator traceActivityDecorator, ICommentRepository commentRepository, IMapper mapper, ApplicationCache cache)
         {
+            this.traceActivityDecorator = traceActivityDecorator;
             this.commentRepository = commentRepository;
             this.mapper = mapper;
             this.cache = cache;
@@ -38,8 +41,10 @@ namespace NtFreX.Blog.Services
         public async Task InsertCommentAsync(CreateCommentDto model)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(CommentService)}.{nameof(InsertCommentAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(CommentService)}.{nameof(InsertCommentAsync)}", ActivityKind.Server))
             {
+                traceActivityDecorator.Decorate(activity);
+
                 var dbModel = mapper.Map<CommentModel>(model);
                 dbModel.Date = DateTime.UtcNow;
 

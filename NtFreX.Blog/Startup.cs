@@ -15,6 +15,8 @@ using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Data.EfCore;
 using NtFreX.Blog.Data.MongoDb;
+using NtFreX.Blog.Health;
+using NtFreX.Blog.Logging;
 using NtFreX.Blog.Services;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Instrumentation.AspNetCore;
@@ -23,6 +25,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace NtFreX.Blog
@@ -136,6 +139,7 @@ namespace NtFreX.Blog
                 options.Conventions.AuthorizeFolder("/Private", AuthorizationPolicyNames.OnlyAsAdmin);
             });
 
+            services.AddTransient<TraceActivityDecorator>();
             services.AddTransient<ApplicationCache>();
             services.AddTransient<ArticleService>();
             services.AddTransient<CommentService>();
@@ -166,9 +170,28 @@ namespace NtFreX.Blog
             }
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, TraceActivityDecorator traceActivityDecorator, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
         {
             ServerCertificateSelector.Instance.SetLoggerFactory(loggerFactory);
+
+            app.Use(async (context, next) =>
+            {
+                var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
+                using (var activity = activitySource.StartActivity($"NtFreX.Blog.Request", ActivityKind.Server))
+                {
+                    traceActivityDecorator.Decorate(activity);
+
+                    httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId] = activity.TraceId;
+
+                    var logger = loggerFactory.CreateLogger("NtFreX.Blog.RequestScope");
+                    using (logger.BeginScope(activity.TraceId))
+                    {
+                        logger.LogTrace("Begin request scope");
+                        await next();
+                        logger.LogTrace("End request scope");
+                    }
+                }
+            });
 
             if (env.IsProduction())
             {

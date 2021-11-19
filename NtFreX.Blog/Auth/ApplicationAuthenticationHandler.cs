@@ -4,12 +4,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NtFreX.Blog.Configuration;
+using NtFreX.Blog.Logging;
 using NtFreX.ConfigFlow.DotNet;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -19,6 +20,7 @@ namespace NtFreX.Blog.Auth
 {
     class ApplicationAuthenticationHandler : AuthenticationHandler<ApplicationAuthenticationOptions>
     {
+        private readonly TraceActivityDecorator traceActivityDecorator;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly ConfigPreloader configPreloader;
         private readonly ILogger<ApplicationAuthenticationHandler> logger;
@@ -29,6 +31,7 @@ namespace NtFreX.Blog.Auth
         public const string ValidAudience = "https://ntfrex.com";
 
         public ApplicationAuthenticationHandler(
+            TraceActivityDecorator traceActivityDecorator,
             IOptionsMonitor<ApplicationAuthenticationOptions> options,
             ILoggerFactory loggerFactory,
             UrlEncoder urlEncoder,
@@ -38,6 +41,7 @@ namespace NtFreX.Blog.Auth
             : base(options, loggerFactory, urlEncoder, clock)
         {
             this.logger = loggerFactory.CreateLogger<ApplicationAuthenticationHandler>();
+            this.traceActivityDecorator = traceActivityDecorator;
             this.httpContextAccessor = httpContextAccessor;
             this.configPreloader = configPreloader;
         }
@@ -45,14 +49,21 @@ namespace NtFreX.Blog.Auth
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(ApplicationAuthenticationHandler)}.{nameof(HandleAuthenticateAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(ApplicationAuthenticationHandler)}.{nameof(HandleAuthenticateAsync)}", ActivityKind.Server))
             {
-                sampleActivity.AddBaggage("Environment.MachineName", System.Environment.MachineName);
+                traceActivityDecorator.Decorate(activity);
 
                 var authenticationResult = TryAuthenticate();
 
                 var meter = new Meter(BlogConfiguration.MetricsName);
-                meter.CreateObservableGauge($"RequestAuthenticated", () => new[] { new Measurement<int>(authenticationResult.Succeeded ? 1 : 0) }, "0 = the requests is unauthenticated, 1 = the request is authenticated");
+                meter.CreateObservableGauge(
+                    $"RequestAuthenticated", 
+                    () => new Measurement<int>(
+                        authenticationResult.Succeeded ? 1 : 0,
+                        new KeyValuePair<string, object>("scheme", AuthenticationScheme),
+                        new KeyValuePair<string, object>("principal", authenticationResult?.Principal.GetIdClaim()),
+                        new KeyValuePair<string, object>("machine", System.Environment.MachineName)),
+                    "0 = the requests is unauthenticated, 1 = the request is authenticated");
 
                 return Task.FromResult(authenticationResult);
             }
@@ -74,7 +85,7 @@ namespace NtFreX.Blog.Auth
             if (!validationResult.Success || validationResult.Principal == null)
                 return AuthenticateResult.Fail("The authorization token is invalid");
 
-            logger.LogInformation($"The given authorization token is valid, user {validationResult.Principal.Claims.First(x => x.Type == "id").Value} was authenticated.");
+            logger.LogInformation($"The given authorization token is valid, user {validationResult.Principal.GetIdClaim()} was authenticated.");
 
             var ticket = new AuthenticationTicket(validationResult.Principal, AuthenticationScheme);
             return AuthenticateResult.Success(ticket);

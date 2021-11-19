@@ -22,7 +22,7 @@ namespace NtFreX.Blog.Auth
                 return false;
 
             var adminUser = configPreloader.Get(ConfigNames.AdminUsername);
-            if (httpContextAccessor.HttpContext.User.Claims.Any(x => x.Type == "id" && x.Value == adminUser))
+            if (httpContextAccessor.HttpContext.User.GetIdClaim() == adminUser)
                 return true;
 
             return false;

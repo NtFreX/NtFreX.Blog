@@ -1,11 +1,15 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+using NtFreX.Blog.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NtFreX.Blog
+namespace NtFreX.Blog.Health
 {
     public class CertificateExpiringHealthCheck : ApplicationHealthCheck
     {
+        public CertificateExpiringHealthCheck(TraceActivityDecorator traceActivityDecorator)
+            : base(traceActivityDecorator) { }
+
         public override Task<HealthCheckResult> DoCheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             if (ServerCertificateSelector.Instance.HasNoValidCertificate())
