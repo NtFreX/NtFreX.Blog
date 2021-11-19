@@ -22,37 +22,47 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
  - (Redis)
  - [to be removed]  NtFreX.Core/ NtFreX.Core.Web / NtFreX.Audio / NtFreX.Audio.Infrastructure / NtFreX.ConfigFlow.DotNet
 
- **Configuration**
+ **Deployment**
  
 To configure the production environment you can set environment variables in the `https-instance-single.config` file.
-To configure the development environment you can set env variables in the `launchSettings.json` file. 
-To build the SSL certificate renewal container you can set the variables in the `build_cert_renewal_container.ps1` file.
- - Note: The DbPasswordVariable needs to be a base64 encoded value to support all special characters
-
-To configure/customize this project you can start with the Configuration.cs file in the NtFreX.Blog.Configuration project. It contains a lot of options to play around. 
+To configure/customize this project you can start with the Configuration.cs file in the NtFreX.Blog.Configuration project. It contains a lot of options to play around. (Examples can be found in `01-databases.sql`)
 For all values in the ConfigNames class a value must be set where the choosen configuration provider can find it.
 Next you might want to add your own privacy.txt, ads,txt, manifest.json, references.txt, robots.txt, security.txt and terms.html.
-As there is currently no IaC, you need to setup your prod environment manualy. 
+The `aws-beanstalk-tools-defaults.json` file can be used to deploy the beanstalk app with the aws cli.
+
+There is IaC for the health check lambda but you need deploy the code yourself.
+
+To build the SSL certificate renewal container you can set the variables in the `build_cert_renewal_container.ps1` file.
+ - Note: The DbPasswordVariable needs to be a base64 encoded value to support all special characters.
+ - Note: The acme credentials need to be resoved manualy.
+ - Note: The lambda for the cert renewal container with event (rate(2months)) has to be created manually.
 
 **TODO**
 
- - deployment pipeline with pre prod stage (pipeline for cert renewal container)
- - host own acme instance in cert renewal container
-  
- - dashboard&alarms
- - add and remove nat gateway before and after cert renewal to avoid cost
+ - init script to replace variables
  - integration tests
-
- - IaC (dashboard alarms, mongodb, rds, elastic beanstalk, ec2 config, redis, cert renewal lambda, networking, security, dev env? sql install script?)
- 
- - opentelemetry-dotnet, maybe also for lambda (https://aws.amazon.com/blogs/opensource/aws-distro-for-opentelemetry-adds-net-tracing-support/, https://github.com/open-telemetry/opentelemetry-dotnet)
-   - https://github.com/aws/aws-logging-dotnet#aspnet-core-logging
-   - https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Contrib.Extensions.AWSXRay
-   - cloudwatch metrics exporter
- - cleanup cloudfare cache after release
+ - dashboard&alarms
+ - deployment pipeline
+   - for web app
  - static code analyzis (dependency security, code security, improvements, etc)
- - Randomize cache livetime so not all caches are invalidated at the same time
+ - dependabot
+
+
+ - host own acme instance in cert renewal container
+ - setup prod infrastructure if not exits in pipeline
+   - dashboard alarms, mongodb/rds, elastic beanstalk, ec2 config, (redis), lambda (cert & health), ecs, networking, security, cloudflare?)
+   - setup db's and tables if not exits in prod
+ - add and remove nat gateway before and after cert renewal to avoid cost (automaticaly, iac exits) 
+ - deployment pipeline
+   - pre prod stages (canaries&bake time)
+   - for cert renewal container
+   - for health check lambda
+   - cleanup cloudfare cache after release
+
+
+ - randomize cache livetime so not all caches are invalidated at the same time
  - cache blazor pages by route
+ - minify at build/release and disable minification in cloudflare
  - code first + migrations
  - upvote or downvote article
  - share article
@@ -60,12 +70,11 @@ As there is currently no IaC, you need to setup your prod environment manualy.
  - exclude own page visits (counts)
  - optimize db queries
  - make everything configurable
- - swagger?
+ - swagger
  - lighthouse checks
- - more logging and docu
  - improve redirection to https
- - dependabot
- - ...
+ - improve css for loading tag on mobile
+ - more logging, metrics, tracing, comments and docu
 
-  - minify at build/release and disable for cloudflare
-  - improve css for loading tag on mobile
+
+ - ...
