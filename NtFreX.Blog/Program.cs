@@ -11,6 +11,8 @@ using NtFreX.Blog.Logging;
 using NtFreX.ConfigFlow.DotNet;
 using OpenTelemetry.Logs;
 using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Net.Security;
 using System.Threading.Tasks;
@@ -19,6 +21,9 @@ namespace NtFreX.Blog
 {
     public class Program
     {
+        public static Meter Meter => new Meter(BlogConfiguration.MetricsName);
+        public static ActivitySource ActivitySource => new ActivitySource(BlogConfiguration.ActivitySourceName);
+
         private static IConfigProvider GetConfigProvider()
         {
             return BlogConfiguration.ConfigProvider switch

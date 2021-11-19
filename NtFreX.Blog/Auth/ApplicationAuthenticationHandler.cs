@@ -8,7 +8,6 @@ using NtFreX.Blog.Logging;
 using NtFreX.ConfigFlow.DotNet;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -30,6 +29,10 @@ namespace NtFreX.Blog.Auth
         public const string ValidIssuer = "https://ntfrex.com";
         public const string ValidAudience = "https://ntfrex.com";
 
+        public static readonly Counter<int> RequestCount = Program.Meter.CreateCounter<int>("BearerRequestCount", description: "The number of requests handled by the Bearer authentication scheme");
+        public static readonly Counter<int> RequestAuthenticatedCount = Program.Meter.CreateCounter<int>("BearerRequestAuthenticatedCount", description: "The number of requests authenticated by the Bearer scheme handler");
+        public static readonly Counter<int> RequestUnauthenticatedCount = Program.Meter.CreateCounter<int>("BearerRequestUnauthenticatedCount", description: "The number of requests unauthenticated by the Bearer scheme handler");
+
         public ApplicationAuthenticationHandler(
             TraceActivityDecorator traceActivityDecorator,
             IOptionsMonitor<ApplicationAuthenticationOptions> options,
@@ -48,25 +51,21 @@ namespace NtFreX.Blog.Auth
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity($"{nameof(ApplicationAuthenticationHandler)}.{nameof(HandleAuthenticateAsync)}", ActivityKind.Server))
-            {
-                traceActivityDecorator.Decorate(activity);
+            using var activity = traceActivityDecorator.StartActivity();
 
-                var authenticationResult = TryAuthenticate();
+            var authenticationResult = TryAuthenticate();
 
-                var meter = new Meter(BlogConfiguration.MetricsName);
-                meter.CreateObservableGauge(
-                    $"RequestAuthenticated", 
-                    () => new Measurement<int>(
-                        authenticationResult.Succeeded ? 1 : 0,
-                        new KeyValuePair<string, object>("scheme", AuthenticationScheme),
-                        new KeyValuePair<string, object>("principal", authenticationResult?.Principal.GetIdClaim()),
-                        new KeyValuePair<string, object>("machine", System.Environment.MachineName)),
-                    "0 = the requests is unauthenticated, 1 = the request is authenticated");
+            var tags = new[] {
+                new KeyValuePair<string, object>("scheme", AuthenticationScheme),
+                new KeyValuePair<string, object>("principal", authenticationResult?.Principal.GetIdClaim()),
+                new KeyValuePair<string, object>("machine", System.Environment.MachineName)
+            };
 
-                return Task.FromResult(authenticationResult);
-            }
+            RequestCount.Add(1, tags);
+            RequestAuthenticatedCount.Add(authenticationResult.Succeeded ? 1 : 0, tags);
+            RequestUnauthenticatedCount.Add(authenticationResult.Succeeded ? 0 : 1, tags);
+
+            return Task.FromResult(authenticationResult);
         }
 
         private AuthenticateResult TryAuthenticate()

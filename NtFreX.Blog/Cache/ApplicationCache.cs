@@ -19,6 +19,10 @@ namespace NtFreX.Blog.Cache
         private readonly IDistributedCache distributedCache;
         private readonly ILogger<ApplicationCache> logger;
 
+        private static readonly Counter<int> CacheHitCounter = Program.Meter.CreateCounter<int>($"CacheHits", description: "The number of cache hits");
+        private static readonly Counter<int> CacheHitSuccessCounter = Program.Meter.CreateCounter<int>($"CacheHitSuccesses", description: "The number of successful cache hits");
+        private static readonly Counter<int> CacheHitFailedCounter = Program.Meter.CreateCounter<int>($"CacheHitFailures", description: "The number of failed cache hits");
+
         public ApplicationCache(TraceActivityDecorator traceActivityDecorator, IMemoryCache memoryCache, IDistributedCache distributedCache, ILogger<ApplicationCache> logger)
         {
             this.traceActivityDecorator = traceActivityDecorator;
@@ -44,58 +48,50 @@ namespace NtFreX.Blog.Cache
 
         public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
         {
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity($"{nameof(ApplicationCache)}.{nameof(GetAsync)}", ActivityKind.Server))
+            using var activity = traceActivityDecorator.StartActivity();
+            activity.AddTag("cacheKey", key);
+
+            logger.LogTrace($"Requesting cache for key {key}");
+
+            var cacheResult = BlogConfiguration.ApplicationCacheType switch
             {
-                logger.LogTrace($"TraceId={activity.TraceId}: Requesting cache for key {key}");
+                CacheType.InMemory => memoryCache.Get<byte[]>(key),
+                CacheType.Distributed => await distributedCache.GetAsync(key, token),
+                _ => throw new ArgumentException($"The given cache type '{BlogConfiguration.ApplicationCacheType}' is not known")
+            };
 
-                traceActivityDecorator.Decorate(activity);
-                activity.AddTag("cacheKey", key);
+            var tags = new[] {
+                new KeyValuePair<string, object>("key", key),
+                new KeyValuePair<string, object>("machine", System.Environment.MachineName),
+                new KeyValuePair<string, object>("type", BlogConfiguration.ApplicationCacheType.ToString())
+            };
 
-                var cacheResult = BlogConfiguration.ApplicationCacheType switch
-                {
-                    CacheType.InMemory => memoryCache.Get<byte[]>(key),
-                    CacheType.Distributed => await distributedCache.GetAsync(key, token),
-                    _ => throw new ArgumentException($"The given cache type '{BlogConfiguration.ApplicationCacheType}' is not known")
-                };
+            CacheHitCounter.Add(1, tags);
+            CacheHitSuccessCounter.Add(cacheResult == null ? 0 : 1, tags);
+            CacheHitFailedCounter.Add(cacheResult == null ? 1 : 0, tags);
 
-                var meter = new Meter(BlogConfiguration.MetricsName);
-                meter.CreateObservableGauge(
-                    $"CacheHit", 
-                    () => new Measurement<int>(
-                        cacheResult == null ? 0 : 1, 
-                        new KeyValuePair<string, object>("key", key),
-                        new KeyValuePair<string, object>("machine", System.Environment.MachineName),
-                        new KeyValuePair<string, object>("type", BlogConfiguration.ApplicationCacheType.ToString())), 
-                    "0 = cache has not been hit, 1 = cache has been hit");
+            logger.LogDebug($"Hitting cache for key {key} {(cacheResult == null ? "didn't" : "did")} return a value");
 
-                logger.LogDebug($"Hitting cache for key {key} {(cacheResult == null ? "didn't" : "did")} return a value");
-
-                return cacheResult;
-            }
+            return cacheResult;
         }
 
         public async Task RemoveAsync(string key, CancellationToken token = default)
         {
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity($"{nameof(ApplicationCache)}.{nameof(GetAsync)}", ActivityKind.Server))
+            using var activity = traceActivityDecorator.StartActivity();
+            activity.AddTag("cacheKey", key);
+
+            logger.LogInformation($"Removing cached value for key {key}");
+
+            switch (BlogConfiguration.ApplicationCacheType)
             {
-                traceActivityDecorator.Decorate(activity);
-                activity.AddTag("cacheKey", key);
-
-                logger.LogInformation($"Removing cached value for key {key}");
-
-                switch (BlogConfiguration.ApplicationCacheType)
-                {
-                    case CacheType.InMemory:
-                        memoryCache.Remove(key);
-                        break;
-                    case CacheType.Distributed:
-                        await distributedCache.RemoveAsync(key, token);
-                        break;
-                    default:
-                        throw new ArgumentException($"The given cache type '{BlogConfiguration.ApplicationCacheType}' is not known");
-                }
+                case CacheType.InMemory:
+                    memoryCache.Remove(key);
+                    break;
+                case CacheType.Distributed:
+                    await distributedCache.RemoveAsync(key, token);
+                    break;
+                default:
+                    throw new ArgumentException($"The given cache type '{BlogConfiguration.ApplicationCacheType}' is not known");
             }
         }
     }

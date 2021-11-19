@@ -25,7 +25,6 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace NtFreX.Blog
@@ -176,20 +175,16 @@ namespace NtFreX.Blog
 
             app.Use(async (context, next) =>
             {
-                var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-                using (var activity = activitySource.StartActivity($"NtFreX.Blog.Request", ActivityKind.Server))
+                using var activity = traceActivityDecorator.StartActivity(name: "NtFreX.Blog.Request");
+
+                httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId] = activity.TraceId;
+
+                var logger = loggerFactory.CreateLogger("NtFreX.Blog.RequestScope");
+                using (logger.BeginScope(activity.TraceId))
                 {
-                    traceActivityDecorator.Decorate(activity);
-
-                    httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId] = activity.TraceId;
-
-                    var logger = loggerFactory.CreateLogger("NtFreX.Blog.RequestScope");
-                    using (logger.BeginScope(activity.TraceId))
-                    {
-                        logger.LogTrace("Begin request scope");
-                        await next();
-                        logger.LogTrace("End request scope");
-                    }
+                    logger.LogTrace("Begin request scope");
+                    await next();
+                    logger.LogTrace("End request scope");
                 }
             });
 
@@ -259,7 +254,6 @@ namespace NtFreX.Blog
                 endpoints.MapFallbackToPage("/_Host");
             });
 
-            // TODO: replace with data layer and ef
             if (env.IsDevelopment() && BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
             {
                 var connectionFactory = serviceProvider.GetRequiredService<MySqlDatabaseConnectionFactory>();

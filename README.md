@@ -46,8 +46,9 @@ To build the SSL certificate renewal container you can set the variables in the 
    - for web app
  - static code analyzis (dependency security, code security, improvements, etc)
  - dependabot
-
-
+ - server side and client side model validation (componentmodel)
+   - action filter
+  
  - host own acme instance in cert renewal container
  - setup prod infrastructure if not exits in pipeline
    - dashboard alarms, mongodb/rds, elastic beanstalk, ec2 config, (redis), lambda (cert & health), ecs, networking, security, cloudflare?)
@@ -58,12 +59,14 @@ To build the SSL certificate renewal container you can set the variables in the 
    - for cert renewal container
    - for health check lambda
    - cleanup cloudfare cache after release
-
+ - get rid of ntfrex depdencencies
+   - get rid of private nuget repo (in docker file)
 
  - randomize cache livetime so not all caches are invalidated at the same time
  - cache blazor pages by route
  - minify at build/release and disable minification in cloudflare
- - code first + migrations
+ - code first + migrations (ef core)
+   - seed data using models and not sql file (startup)
  - upvote or downvote article
  - share article
  - page metadata (SEO)

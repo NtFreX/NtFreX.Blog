@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
-using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Logging;
 using NtFreX.Blog.Models;
@@ -31,6 +29,8 @@ namespace NtFreX.Blog.Services
 
         public async Task<IReadOnlyList<CommentDto>> GetCommentsByArticleIdAsync(string id)
         {
+            using var activity = traceActivityDecorator.StartActivity();
+
             return await cache.CacheAsync(CacheKeys.CommentsByArticleId(id), CacheKeys.TimeToLive, async () =>
             {
                 var dbModels = await commentRepository.FindByArticleIdAsync(id);
@@ -40,17 +40,13 @@ namespace NtFreX.Blog.Services
 
         public async Task InsertCommentAsync(CreateCommentDto model)
         {
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity($"{nameof(CommentService)}.{nameof(InsertCommentAsync)}", ActivityKind.Server))
-            {
-                traceActivityDecorator.Decorate(activity);
+            using var activity = traceActivityDecorator.StartActivity();
 
-                var dbModel = mapper.Map<CommentModel>(model);
-                dbModel.Date = DateTime.UtcNow;
+            var dbModel = mapper.Map<CommentModel>(model);
+            dbModel.Date = DateTime.UtcNow;
 
-                await commentRepository.InsertAsync(dbModel);
-                await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
-            }
+            await commentRepository.InsertAsync(dbModel);
+            await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
         }
     }
 }

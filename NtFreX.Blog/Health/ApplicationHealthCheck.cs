@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Logging;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +11,11 @@ namespace NtFreX.Blog.Health
     {
         private readonly TraceActivityDecorator traceActivityDecorator;
 
+        private static readonly Counter<int> HealthCheckCounter = Program.Meter.CreateCounter<int>($"HealthChecks", description: "The number of health checks");
+        private static readonly Counter<int> DegratedCounter = Program.Meter.CreateCounter<int>($"HealthChecks", description: "The number of degrated health checks");
+        private static readonly Counter<int> UnhealthyCounter = Program.Meter.CreateCounter<int>($"HealthChecks", description: "The number of unhelathy health checks");
+        private static readonly Counter<int> HealthyCounter = Program.Meter.CreateCounter<int>($"HealthChecks", description: "The number of healthy health checks");
+
         public ApplicationHealthCheck(TraceActivityDecorator traceActivityDecorator)
         {
             this.traceActivityDecorator = traceActivityDecorator;
@@ -20,27 +23,24 @@ namespace NtFreX.Blog.Health
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            var activityName = "ApplicationHealthCheck";
             var healthCheckName = GetType().Name;
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity(activityName, ActivityKind.Server))
+            using var activity = traceActivityDecorator.StartActivity();
+            activity.AddTag("healthCheckName", healthCheckName);
+
+            var result = await DoCheckHealthAsync(context, cancellationToken);
+
+            var tags = new[]
             {
-                traceActivityDecorator.Decorate(activity);
+                new KeyValuePair<string, object>("name", healthCheckName),
+                new KeyValuePair<string, object>("machine", System.Environment.MachineName)
+            };
 
-                activity.AddTag("healthCheckName", healthCheckName);
-
-                var result = await DoCheckHealthAsync(context, cancellationToken);
-                var meter = new Meter(BlogConfiguration.MetricsName);
-                meter.CreateObservableGauge(
-                    $"HealthCheckStatus", 
-                    () => new Measurement<int>(
-                        (int)result.Status,
-                        new KeyValuePair<string, object>("name", healthCheckName),
-                        new KeyValuePair<string, object>("machine", System.Environment.MachineName)),
-                    "unhealthy = 0, degraded = 1, healthy = 2");
-                
-                return result;
-            }
+            HealthCheckCounter.Add(1, tags);
+            DegratedCounter.Add(result.Status == HealthStatus.Degraded ? 1 : 0, tags);
+            UnhealthyCounter.Add(result.Status == HealthStatus.Unhealthy ? 1 : 0, tags);
+            HealthyCounter.Add(result.Status == HealthStatus.Healthy ? 1 : 0, tags);
+                            
+            return result;
         }
 
         public abstract Task<HealthCheckResult> DoCheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default);
