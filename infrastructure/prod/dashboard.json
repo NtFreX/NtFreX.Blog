@@ -1,0 +1,480 @@
+{
+    "widgets": [
+        {
+            "height": 6,
+            "width": 6,
+            "y": 24,
+            "x": 6,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/DocDB", "DatabaseConnections", "DBClusterIdentifier", "ntfrex-blog" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "stat": "Sum",
+                "period": 60,
+                "title": "MongoDb Connections",
+                "unit": "Count",
+                "region": "us-east-2",
+                "yAxis": {
+                    "left": {
+                        "showUnits": true,
+                        "label": ""
+                    }
+                },
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 24,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/DocDB", "CPUUtilization", "DBClusterIdentifier", "ntfrex-blog" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "stat": "Average",
+                "period": 60,
+                "title": "MongoDb CPU Utilization",
+                "unit": "Percent",
+                "region": "us-east-2",
+                "yAxis": {
+                    "left": {
+                        "label": "",
+                        "showUnits": true
+                    }
+                },
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 12,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/ApplicationELB", "RequestCount", "LoadBalancer", "app/awseb-AWSEB-GNVCCBS2DP83/392e2b3e6211c3a0", { "label": "NtFreXBlog-prod" } ],
+                    [ "...", "app/awseb-AWSEB-JL2MDWSLZVFO/9f9433c1f50f708b", { "id": "m6", "label": "NtFreXBlog-prod", "color": "#1f77b4", "visible": false } ],
+                    [ "...", "app/awseb-AWSEB-OQPQ2XTCC9RB/f761ec33c11c2fd7", { "id": "m8", "label": "NtFreXConfigFlowWeb-prod", "color": "#ff7f0e", "visible": false } ],
+                    [ "...", "app/awseb-AWSEB-295IB2MEW5TD/ede05b0689166c53", { "id": "m4", "label": "NtFreXLogger-prod", "color": "#2ca02c", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "stat": "Sum",
+                "period": 60,
+                "title": "ELB Request Count",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": true,
+                        "label": ""
+                    }
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 12,
+            "x": 18,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/ApplicationELB", "HTTPCode_ELB_5XX_Count", "LoadBalancer", "app/awseb-AWSEB-GNVCCBS2DP83/392e2b3e6211c3a0", { "label": "NtFreXBlog-prod" } ],
+                    [ "...", "app/awseb-AWSEB-JL2MDWSLZVFO/9f9433c1f50f708b", { "label": "NtFreXBlog-prod", "color": "#1f77b4", "visible": false } ],
+                    [ "...", "app/awseb-AWSEB-OQPQ2XTCC9RB/f761ec33c11c2fd7", { "label": "NtFreXConfigFlowWeb-prod", "color": "#ff7f0e", "visible": false } ],
+                    [ "...", "app/awseb-AWSEB-295IB2MEW5TD/ede05b0689166c53", { "label": "NtFreXLoggerWeb-prod", "color": "#2ca02c", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "stat": "Sum",
+                "period": 60,
+                "title": "ELB 5XX Count",
+                "yAxis": {
+                    "left": {
+                        "showUnits": true,
+                        "label": ""
+                    }
+                },
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 12,
+            "y": 12,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", "app/awseb-AWSEB-GNVCCBS2DP83/392e2b3e6211c3a0", { "label": "NtFreXBlog-prod" } ],
+                    [ "...", "app/awseb-AWSEB-JL2MDWSLZVFO/9f9433c1f50f708b", { "id": "m6", "label": "NtFreXBlog-prod", "color": "#1f77b4", "visible": false } ],
+                    [ "...", "app/awseb-AWSEB-OQPQ2XTCC9RB/f761ec33c11c2fd7", { "id": "m8", "label": "NtFreXConfigFlowWeb-prod", "color": "#ff7f0e", "visible": false } ],
+                    [ "...", "app/awseb-AWSEB-295IB2MEW5TD/ede05b0689166c53", { "id": "m2", "label": "NtFreXLoggerWeb-prod", "color": "#2ca02c", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "ELB Response Time",
+                "period": 60,
+                "stat": "Average",
+                "liveData": true,
+                "yAxis": {
+                    "left": {
+                        "showUnits": true
+                    }
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 18,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/ElastiCache", "CacheHitRate", "CacheClusterId", "ntfrex-blog-001" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "stat": "Average",
+                "period": 60,
+                "title": "Cache HitRate",
+                "yAxis": {
+                    "left": {
+                        "label": "",
+                        "showUnits": true
+                    }
+                },
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 18,
+            "x": 18,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/ElastiCache", "CacheHits", "CacheClusterId", "ntfrex-blog-001" ],
+                    [ "...", "ntfrex-blog-002" ],
+                    [ "...", "ntfrex-blog-003" ],
+                    [ ".", "CacheMisses", ".", "ntfrex-blog-001" ],
+                    [ "...", "ntfrex-blog-002" ],
+                    [ "...", "ntfrex-blog-003" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "Cache Hits and misses",
+                "period": 60,
+                "stat": "Average",
+                "yAxis": {
+                    "left": {
+                        "label": "",
+                        "showUnits": true
+                    }
+                },
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 12,
+            "y": 18,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/ElastiCache", "CPUUtilization", "CacheClusterId", "ntfrex-blog-001" ],
+                    [ "...", "ntfrex-blog-002" ],
+                    [ "...", "ntfrex-blog-003" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "Cache CPU Utilization",
+                "period": 60,
+                "yAxis": {
+                    "left": {
+                        "showUnits": true,
+                        "label": ""
+                    }
+                },
+                "liveData": true,
+                "stat": "Average"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 30,
+            "x": 6,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/RDS", "DatabaseConnections", "DBClusterIdentifier", "blog-1" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "AuroraDb Connections",
+                "period": 60,
+                "yAxis": {
+                    "left": {
+                        "showUnits": true
+                    }
+                },
+                "liveData": true,
+                "stat": "Average"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 30,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/RDS", "CPUUtilization", "DBClusterIdentifier", "blog-1" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "AuroraDb CPU Utilization",
+                "period": 60,
+                "liveData": true,
+                "stat": "Average"
+            }
+        },
+        {
+            "height": 6,
+            "width": 12,
+            "y": 6,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "(m8 - m7) / (m8 / 100)", "label": "NtFreXBlog-prod", "id": "e1", "region": "us-east-2", "period": 60 } ],
+                    [ { "expression": "(m1 - m4) / (m1 / 100)", "label": "NtFreXConfigFlowWeb-prod", "id": "e2", "region": "us-east-2", "period": 60, "visible": false } ],
+                    [ { "expression": "(m5 - m6) / (m5 / 100)", "label": "NtFreXLoggerWeb-prod", "id": "e3", "region": "us-east-2", "period": 60, "visible": false } ],
+                    [ "AWS/ApplicationELB", "RequestCount", "LoadBalancer", "app/awseb-AWSEB-JL2MDWSLZVFO/9f9433c1f50f708b", { "id": "m2", "visible": false } ],
+                    [ ".", "HTTPCode_ELB_5XX_Count", ".", ".", { "id": "m3", "visible": false } ],
+                    [ ".", "RequestCount", ".", "app/awseb-AWSEB-OQPQ2XTCC9RB/f761ec33c11c2fd7", { "id": "m1", "visible": false } ],
+                    [ ".", "HTTPCode_Target_5XX_Count", ".", ".", { "id": "m4", "visible": false } ],
+                    [ ".", "RequestCount", ".", "app/awseb-AWSEB-295IB2MEW5TD/ede05b0689166c53", { "id": "m5", "visible": false } ],
+                    [ ".", "HTTPCode_ELB_5XX_Count", ".", ".", { "id": "m6", "visible": false } ],
+                    [ ".", "RequestCount", ".", "app/awseb-AWSEB-GNVCCBS2DP83/392e2b3e6211c3a0", "AvailabilityZone", "us-east-2b", { "id": "m8", "visible": false } ],
+                    [ ".", "HTTPCode_Target_5XX_Count", ".", ".", ".", ".", { "id": "m7", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "stat": "Sum",
+                "period": 60,
+                "title": "ELB Availability",
+                "yAxis": {
+                    "left": {
+                        "label": "Percent",
+                        "showUnits": false
+                    }
+                },
+                "liveData": true,
+                "annotations": {
+                    "horizontal": [
+                        {
+                            "label": "SNS Alarm threshold (NtFreXBlog) (1 datapoint)",
+                            "value": 90,
+                            "fill": "below"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 30,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/RDS", "ReadLatency", "DBClusterIdentifier", "blog-1" ],
+                    [ ".", "WriteLatency", ".", "." ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "AuroraDb Latency",
+                "period": 60,
+                "liveData": true,
+                "stat": "Average"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 30,
+            "x": 18,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/RDS", "DMLThroughput", "DBClusterIdentifier", "blog-1" ],
+                    [ ".", "SelectThroughput", ".", "." ],
+                    [ ".", "UpdateThroughput", ".", "." ],
+                    [ ".", "DeleteThroughput", ".", "." ],
+                    [ ".", "InsertThroughput", ".", "." ],
+                    [ ".", "CommitThroughput", ".", "." ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "AuroraDb Throughput",
+                "period": 60,
+                "liveData": true,
+                "stat": "Average"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 24,
+            "x": 18,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/DocDB", "WriteThroughput", "DBClusterIdentifier", "ntfrex-blog" ],
+                    [ ".", "ReadThroughput", ".", "." ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "MongoDb Throughput",
+                "period": 60,
+                "liveData": true,
+                "stat": "Average"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 24,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/DocDB", "WriteLatency", "DBClusterIdentifier", "ntfrex-blog" ],
+                    [ ".", "ReadLatency", ".", "." ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "MongoDb Latency",
+                "period": 60,
+                "stat": "Average",
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 12,
+            "y": 36,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/EC2", "CPUUtilization", "AutoScalingGroupName", "awseb-e-2yjryp537m-stack-AWSEBAutoScalingGroup-188N1CLRRJ590", { "label": "NtFreXBlog-prod", "visible": false } ],
+                    [ "...", "awseb-e-rsbpnkpewr-stack-AWSEBAutoScalingGroup-FWH6L0QEHR9Y", { "label": "NtFreXBlog-prod", "visible": false } ],
+                    [ "...", "awseb-e-fjn79h8ybe-stack-AWSEBAutoScalingGroup-STOS2QLY066M", { "label": "NtFreXConfigFlowWeb-prod", "color": "#ff7f0e", "visible": false } ],
+                    [ "...", "awseb-e-pg3nm5jdas-stack-AWSEBAutoScalingGroup-19UAEEWEOFQ5E", { "label": "NtFreXLoggerWeb-prod", "color": "#2ca02c", "visible": false } ],
+                    [ "...", "InstanceId", "i-09c024e64237bb47e", { "label": "NtFreXConfigFlowWeb-prod", "color": "#ff7f0e", "visible": false } ],
+                    [ "...", "AutoScalingGroupName", "awseb-e-rnyua3vj8s-stack-AWSEBAutoScalingGroup-R5SFY055JBQ3", { "color": "#1f77b4" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "title": "EC2 CPU Utilization",
+                "stat": "Average",
+                "period": 60,
+                "liveData": true,
+                "annotations": {
+                    "horizontal": [
+                        {
+                            "visible": false,
+                            "label": "SNS Alarm threshold (1 datapoint)",
+                            "value": 80,
+                            "fill": "above"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 12,
+            "y": 6,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "NtFreXConfigFlowWeb-prod", "NtFreXConfigFlowWeb-prod-401-requests", { "label": "NtFreXConfigFlowWeb-prod", "color": "#ff7f0e" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "us-east-2",
+                "stat": "Sum",
+                "period": 60,
+                "title": "LogStream 401 Request Count",
+                "yAxis": {
+                    "left": {
+                        "showUnits": false
+                    },
+                    "right": {
+                        "showUnits": false
+                    }
+                },
+                "annotations": {
+                    "horizontal": [
+                        {
+                            "label": "SNS Alarm threshold (NtFreXBlog) (1 datapoint)",
+                            "value": 5,
+                            "fill": "above"
+                        }
+                    ]
+                },
+                "liveData": true
+            }
+        },
+        {
+            "height": 6,
+            "width": 24,
+            "y": 0,
+            "x": 0,
+            "type": "metric",
+            "properties": {
+                "title": "NtFreXBlogUnhealthy",
+                "annotations": {
+                    "alarms": [
+                        "arn:aws:cloudwatch:us-east-2:059702969940:alarm:NtFreXBlogUnhealthy"
+                    ]
+                },
+                "view": "timeSeries",
+                "stacked": false
+            }
+        }
+    ]
+}
+}

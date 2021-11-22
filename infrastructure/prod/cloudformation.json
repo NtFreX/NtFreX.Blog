@@ -1,0 +1,121 @@
+"Resources": {
+    "EIP" : {
+        "Type" : "AWS::EC2::EIP",
+        "Properties" : {
+            "Domain" : "vpc"
+        }
+    },
+    "NatGateway": {
+        "DependsOn" : "EIP",
+        "Type" : "AWS::EC2::NatGateway",
+        "Properties" : {
+            "AllocationId" : { "Fn::GetAtt" : ["EIP", "AllocationId"]},
+            "ConnectivityType" : "public",
+            "SubnetId" : "subnet-519d1239",
+            "Tags" : [ {"Key" : "stack", "Value" : "production" } ]
+        }
+    },
+  "Route": {
+    "DependsOn": "NatGateway",
+    "Type": "AWS::EC2::Route",
+    "Properties": {
+      "RouteTableId": "rtb-04c45455d29ac12c4",
+      "DestinationCidrBlock": "0.0.0.0/0",
+      "NatGatewayId": { "Ref": "NatGateway" }
+    }
+  }
+
+  
+  ntfrexBlogEbsExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'aws-elasticbeanstalk-ec2-role-ntfrex-blog'
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: ntfrexBlogEbsExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Resource: '*'
+              Action:
+                - 'logs:*'
+                - 'xray:*'
+                - 'ssm:GetParameters'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     
+    "VPC" : {
+        "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+           "CidrBlock" : "172.31.0.0/16",
+           "EnableDnsSupport" : "true",
+           "EnableDnsHostnames" : "true",
+           "Tags" : [ 
+              {"Key" : "stack", "Value" : "production"} 
+           ]
+        }
+    },
+
+
+    
+    "PublicSubNetA" : {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+           "VpcId" : { "Ref" : "VPC" },
+           "CidrBlock" : "172.31.0.0/20",
+           "AvailabilityZone" : "eu-central-1a",
+           "Tags" : [ { "Key" : "stack", "Value" : "production" } ]
+        }
+     },
+     "PublicSubNetB" : {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+           "VpcId" : { "Ref" : "VPC" },
+           "CidrBlock" : "172.31.16.0/20",
+           "AvailabilityZone" : "eu-central-1b",
+           "Tags" : [ { "Key" : "stack", "Value" : "production" } ]
+        }
+     },
+     "PublicSubNetB" : {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+           "VpcId" : { "Ref" : "VPC" },
+           "CidrBlock" : "172.31.32.0/20",
+           "AvailabilityZone" : "eu-central-1c",
+           "Tags" : [ { "Key" : "stack", "Value" : "production" } ]
+        }
+     },
+
+
+}

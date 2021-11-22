@@ -1,12 +1,12 @@
-$environment = ""
-$mysqlConfigPw = ""
-$mysqlConfigUser = ""
-$mysqlConfigServer = ""
+$environment = "Production"
+$mysqlConfigPw = "Pa`$`$w0rd!+"
+$mysqlConfigUser = "admin"
+$mysqlConfigServer = "blog-1.cluster-c4pu8xerd0na.us-east-2.rds.amazonaws.com"
 $configSecret = ""
 $configPath = ""
-$s3bucket = ""
-$app = ""
-$ebsEnv = ""
+$s3bucket = "elasticbeanstalk-us-east-2-059702969940"
+$app = "NtFreXBlog"
+$ebsEnv = "preprod"
 
 
 dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime linux-x64 --configuration Release
