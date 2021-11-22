@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Logging;
+using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Models;
 
 namespace NtFreX.Blog.Services
@@ -17,13 +20,17 @@ namespace NtFreX.Blog.Services
         private readonly ICommentRepository commentRepository;
         private readonly IMapper mapper;
         private readonly ApplicationCache cache;
+        private readonly IMessageBus messageBus;
 
-        public CommentService(TraceActivityDecorator traceActivityDecorator, ICommentRepository commentRepository, IMapper mapper, ApplicationCache cache)
+        private static readonly Counter<int> CommmentCreatedCounter = Program.Meter.CreateCounter<int>($"CommentCreated", description: "The number of comments created");
+        
+        public CommentService(TraceActivityDecorator traceActivityDecorator, ICommentRepository commentRepository, IMapper mapper, ApplicationCache cache, IMessageBus messageBus)
         {
             this.traceActivityDecorator = traceActivityDecorator;
             this.commentRepository = commentRepository;
             this.mapper = mapper;
             this.cache = cache;
+            this.messageBus = messageBus;
         }
 
 
@@ -46,7 +53,15 @@ namespace NtFreX.Blog.Services
             dbModel.Date = DateTime.UtcNow;
 
             await commentRepository.InsertAsync(dbModel);
-            await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId.ToString()));
+            await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId));
+
+            var tags = new[] {
+                    new KeyValuePair<string, object>("user", model.User),
+                    new KeyValuePair<string, object>("machine", Environment.MachineName)
+            };
+            CommmentCreatedCounter.Add(1, tags);
+
+            await messageBus.SendMessageAsync("ntfrex.blog.comments", JsonSerializer.Serialize(model));
         }
     }
 }

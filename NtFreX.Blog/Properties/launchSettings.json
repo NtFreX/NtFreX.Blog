@@ -7,7 +7,7 @@
       "environmentVariables": {
         "NtFrexMySqlConfigUser": "root",
         "NtFrexMySqlConfigServer": "127.0.0.1",
-        "NtFrexMySqlConfigPw": "",
+        "NtFrexMySqlConfigPw": "1234",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": "true",

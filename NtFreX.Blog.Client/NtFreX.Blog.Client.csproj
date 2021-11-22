@@ -26,15 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="NtFreX.Audio">
-      <HintPath>E:\Private\Projects\NtFreX.Audio\src\NtFreX.Audio\bin\Release\net5.0\NtFreX.Audio.dll</HintPath>
-    </Reference>
-    <Reference Include="NtFreX.Audio.Infrastructure">
-      <HintPath>E:\Private\Projects\NtFreX.Audio\src\NtFreX.Audio\bin\Release\net5.0\NtFreX.Audio.Infrastructure.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Update="wwwroot\ads.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

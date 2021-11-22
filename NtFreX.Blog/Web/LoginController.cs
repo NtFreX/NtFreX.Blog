@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NtFreX.Blog.Auth;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Logging;
+using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Models;
 using NtFreX.ConfigFlow.DotNet;
 using System;
@@ -24,6 +26,8 @@ namespace NtFreX.Blog.Web
         private readonly ConfigPreloader configPreloader;
         private readonly ApplicationCache cache;
         private readonly ILogger<LoginController> logger;
+        private readonly IMessageBus messageBus;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
         public const int MaxLoginTries = 5;
         public const int PersistLoginAttemptsForXHours = 24;
@@ -32,12 +36,14 @@ namespace NtFreX.Blog.Web
         private static readonly Counter<int> LoginSuccessCounter = Program.Meter.CreateCounter<int>($"LoginSuccess", description: "The number of successful logins");
         private static readonly Counter<int> LoginFailedCounter = Program.Meter.CreateCounter<int>($"LoginFailed", description: "The number of failed logins");
 
-        public LoginController(TraceActivityDecorator traceActivityDecorator, ConfigPreloader configPreloader, ApplicationCache cache, ILogger<LoginController> logger)
+        public LoginController(TraceActivityDecorator traceActivityDecorator, ConfigPreloader configPreloader, ApplicationCache cache, ILogger<LoginController> logger, IMessageBus messageBus, IHttpContextAccessor httpContextAccessor)
         {
             this.traceActivityDecorator = traceActivityDecorator;
             this.configPreloader = configPreloader;
             this.cache = cache;
             this.logger = logger;
+            this.messageBus = messageBus;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         private Dictionary<string, string> GetUsersAndPasswords()
@@ -49,6 +55,9 @@ namespace NtFreX.Blog.Web
         [HttpPost]
         public async Task<ActionResult> LoginAsync([FromBody] LoginCredentialsDto credentials)
         {
+            if (!BlogConfiguration.EnableLogins)
+                return Ok();
+
             using var activity = traceActivityDecorator.StartActivity();
             activity.AddTag("username", credentials.Username);
 
@@ -63,6 +72,9 @@ namespace NtFreX.Blog.Web
             LoginSuccessCounter.Add(string.IsNullOrEmpty(token) ? 0 : 1, tags);
             LoginFailedCounter.Add(string.IsNullOrEmpty(token) ? 1 : 0, tags);
 
+            if(!string.IsNullOrEmpty(token))
+                await messageBus.SendMessageAsync("ntfrex.blog.logins", "user: " + User + ", remoteId: " + httpContextAccessor?.HttpContext?.Connection?.RemoteIpAddress?.ToString());
+
             logger.LogInformation($"User {credentials.Username} login was {(token == null ? "not" : "")} succesfull");
             return Ok(token);
         }
@@ -70,6 +82,9 @@ namespace NtFreX.Blog.Web
         private async Task<string> TryAuthenticateUser(LoginCredentialsDto credentials)
         {
             using var activity = traceActivityDecorator.StartActivity();
+
+            if (!BlogConfiguration.EnableLogins)
+                return null;
 
             var secret = configPreloader.Get(ConfigNames.JwtSecret);
             var usersAndPasswords = GetUsersAndPasswords();

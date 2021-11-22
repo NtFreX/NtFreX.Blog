@@ -38,14 +38,33 @@ namespace NtFreX.Blog
         public static async Task<(IConfigurationRoot Configuration, IConfigProvider ConfigProvider, ConfigPreloader ConfigLoader, string ReddisConnectionString)> InitializeAppAsync()
         {
             IConfigProvider configProvider = GetConfigProvider();
-            var configLoader = await ConfigPreloader.LoadAsync(configProvider, ConfigNames.MongoDbConnectionString, ConfigNames.MySqlDbConnectionString, ConfigNames.BlogDatabaseName, ConfigNames.JwtSecret, ConfigNames.AdminUsername, ConfigNames.AdminPassword);
-            var reddisConnectionString = await configProvider.GetAsync(ConfigNames.RedisConnectionString);
+            var configLoader = await ConfigPreloader.LoadAsync(configProvider);
+            
+            await configLoader.LoadByKeysAsync(ConfigNames.BlogDatabaseName, ConfigNames.JwtSecret, ConfigNames.AdminUsername, ConfigNames.AdminPassword);
+            if(BlogConfiguration.PersistenceLayer == PersistenceLayerType.MongoDb)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.MongoDbConnectionString);
+            }
+            else if(BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.MySqlDbConnectionString);
+            }
+
+            if(BlogConfiguration.MessageBus == MessageBusType.RabbitMq)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.RabbitMqHost, ConfigNames.RabbitMqUser, ConfigNames.RabbitMqPassword);
+            }
+            else if (BlogConfiguration.MessageBus == MessageBusType.AwsSqs || BlogConfiguration.MessageBus == MessageBusType.AwsEventBus)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.AwsMessageBusAccessKeyId, ConfigNames.AwsMessageBusAccessKey);
+            }
 
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
                 .AddJsonFile($"appsettings.{Configuration.Environment.AspNetCoreEnvironment}.json", optional: true)
                 .Build();
 
+            var reddisConnectionString = BlogConfiguration.ApplicationCacheType == CacheType.Distributed ? await configProvider.GetAsync(ConfigNames.RedisConnectionString) : string.Empty;
             return (config, configProvider, configLoader, reddisConnectionString);
         }
 

@@ -9,32 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Client", "NtFre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Models", "NtFreX.Blog.Models\NtFreX.Blog.Models.csproj", "{760302EB-323D-4C7D-9A27-E02107212C0C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3E4611A4-17BD-4BC9-8BE8-293D3AE61AFD}"
-	ProjectSection(SolutionItems) = preProject
-		.dockerignore = .dockerignore
-		.gitignore = .gitignore
-		build_cert_renewal_container.ps1 = build_cert_renewal_container.ps1
-		Dockerfile = Dockerfile
-		NtFreX.Blog.postman_collection.json = NtFreX.Blog.postman_collection.json
-		nuget.config = nuget.config
-		README.md = README.md
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Configuration", "NtFreX.Blog.Configuration\NtFreX.Blog.Configuration.csproj", "{4818FE99-B20E-40F2-9686-0951922F8D46}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cert_renewal", "cert_renewal", "{7EAE07E8-0922-44E4-AAAC-6BC3811FEF51}"
-	ProjectSection(SolutionItems) = preProject
-		cert_renewal\acme-dns-auth.py = cert_renewal\acme-dns-auth.py
-		cert_renewal\acmedns.json = cert_renewal\acmedns.json
-		cert_renewal\Dockerfile = cert_renewal\Dockerfile
-		cert_renewal\start.sh = cert_renewal\start.sh
-		cert_renewal\update_db.py = cert_renewal\update_db.py
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "health_check", "health_check", "{B955394A-A485-442E-9690-AEEDF87175B2}"
-	ProjectSection(SolutionItems) = preProject
-		health_check\index.js = health_check\index.js
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtFreX.Blog.Data", "NtFreX.Blog.Data\NtFreX.Blog.Data.csproj", "{A011E444-F50A-413D-B2CA-CAED551AFCBF}"
 EndProject

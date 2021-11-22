@@ -57,7 +57,7 @@ namespace NtFreX.Blog.Auth
 
             var tags = new[] {
                 new KeyValuePair<string, object>("scheme", AuthenticationScheme),
-                new KeyValuePair<string, object>("principal", authenticationResult?.Principal.GetIdClaim()),
+                new KeyValuePair<string, object>("principal", authenticationResult?.Principal?.GetIdClaim()),
                 new KeyValuePair<string, object>("machine", System.Environment.MachineName)
             };
 

@@ -39,6 +39,7 @@ To build the SSL certificate renewal container you can set the variables in the 
 
 **TODO**
 
+ - test if prod event bridge config works (add iac)
  - init script to replace variables
  - integration tests
  - dashboard&alarms
@@ -62,6 +63,7 @@ To build the SSL certificate renewal container you can set the variables in the 
  - get rid of ntfrex depdencencies
    - get rid of private nuget repo (in docker file)
 
+ - client usage analythics
  - randomize cache livetime so not all caches are invalidated at the same time
  - cache blazor pages by route
  - minify at build/release and disable minification in cloudflare
