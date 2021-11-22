@@ -24,9 +24,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="5.0.1" />
-    <PackageReference Include="NtFreX.ConfigFlow.DotNet" Version="1.0.0" />
-    <PackageReference Include="NtFreX.Core" Version="1.0.0" />
-    <PackageReference Include="NtFreX.Core.Web" Version="1.0.0" />
     <PackageReference Include="OpenTelemetry.Contrib.Extensions.AWSXRay" Version="1.1.0" />
     <PackageReference Include="OpenTelemetry.Contrib.Instrumentation.AWS" Version="1.0.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.1.0" />
@@ -45,6 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NtFreX.Blog.Client\NtFreX.Blog.Client.csproj" />
     <ProjectReference Include="..\NtFreX.Blog.Configuration\NtFreX.Blog.Configuration.csproj" />
+    <ProjectReference Include="..\NtFreX.Blog.Core\NtFreX.Blog.Core.csproj" />
     <ProjectReference Include="..\NtFreX.Blog.Data\NtFreX.Blog.Data.csproj" />
     <ProjectReference Include="..\NtFreX.Blog.Models\NtFreX.Blog.Models.csproj" />
   </ItemGroup>

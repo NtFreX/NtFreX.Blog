@@ -8,7 +8,6 @@ using NLog.Config;
 using NLog.Web;
 using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Logging;
-using NtFreX.ConfigFlow.DotNet;
 using OpenTelemetry.Logs;
 using System;
 using System.Diagnostics;
@@ -28,8 +27,8 @@ namespace NtFreX.Blog
         {
             return BlogConfiguration.ConfigProvider switch
             {
-                ConfigurationProviderType.Web => new WebConfigProvider(Constants.ClientId, System.Environment.GetEnvironmentVariable(EnvironmentVariables.WebConfigProviderSecret)),
-                ConfigurationProviderType.MySql => new MySqlConfigRepository(System.Environment.GetEnvironmentVariable(EnvironmentVariables.MySqlConfigUser), System.Environment.GetEnvironmentVariable(EnvironmentVariables.MySqlConfigPw), System.Environment.GetEnvironmentVariable(EnvironmentVariables.MySqlConfigServer)),
+                ConfigurationProviderType.Web => new WebConfigProvider(Constants.ClientId, System.Environment.GetEnvironmentVariable(EnvironmentVariables.WebConfigProviderSecret), System.Environment.GetEnvironmentVariable(EnvironmentVariables.WebConfigProviderPath)),
+                ConfigurationProviderType.MySql => new MySqlConfigProvider(System.Environment.GetEnvironmentVariable(EnvironmentVariables.MySqlConfigUser), System.Environment.GetEnvironmentVariable(EnvironmentVariables.MySqlConfigPw), System.Environment.GetEnvironmentVariable(EnvironmentVariables.MySqlConfigServer)),
                 ConfigurationProviderType.Environment => new EnvironmentConfigProvider(),
                 _ => throw new ArgumentException($"Unkonwn ConfigProviderType '{BlogConfiguration.ConfigProvider}' was given")
             };

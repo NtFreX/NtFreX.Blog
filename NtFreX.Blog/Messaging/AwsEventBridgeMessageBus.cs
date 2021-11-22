@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Amazon.EventBridge;
 using Amazon.EventBridge.Model;
 using NtFreX.Blog.Configuration;
-using NtFreX.ConfigFlow.DotNet;
 
 namespace NtFreX.Blog.Messaging
 {

@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using NtFreX.Blog.Configuration;
-using NtFreX.ConfigFlow.DotNet;
-using System.Linq;
 
 namespace NtFreX.Blog.Auth
 {

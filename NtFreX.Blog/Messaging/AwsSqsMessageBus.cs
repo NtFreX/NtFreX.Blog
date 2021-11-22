@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Amazon.SQS;
 using NtFreX.Blog.Configuration;
-using NtFreX.ConfigFlow.DotNet;
 
 namespace NtFreX.Blog.Messaging
 {

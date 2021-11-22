@@ -1,11 +1,12 @@
-$environment = "#environment#"
-$mysqlConfigPw = "#mysqlConfigPw#"
-$mysqlConfigUser = "#mysqlConfigUser#"
-$mysqlConfigServer = "#mysqlConfigServer#"
-$configSecret = "#configSecret#"
-$s3bucket = "#s3bucket#"
-$app = "#app#"
-$ebsEnv = "#ebsEnv#"
+$environment = ""
+$mysqlConfigPw = ""
+$mysqlConfigUser = ""
+$mysqlConfigServer = ""
+$configSecret = ""
+$configPath = ""
+$s3bucket = ""
+$app = ""
+$ebsEnv = ""
 
 
 dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime linux-x64 --configuration Release
@@ -17,6 +18,7 @@ Copy-Item ./NtFreX.Blog/bin/Release/net5.0/linux-x64/publish ./publish -Recurse
 (Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigServer', $mysqlConfigServer) | Set-Content ./publish/.ebextensions/ebs.config
 (Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigUser', $mysqlConfigUser) | Set-Content ./publish/.ebextensions/ebs.config
 (Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigSecret', $configSecret) | Set-Content ./publish/.ebextensions/ebs.config
+(Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigPath', $configPath) | Set-Content ./publish/.ebextensions/ebs.config
 
 tar -C ./publish -vacf publish.zip .
 
