@@ -6,9 +6,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Install dotnet 
