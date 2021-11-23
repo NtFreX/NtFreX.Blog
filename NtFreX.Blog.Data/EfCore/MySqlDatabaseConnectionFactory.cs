@@ -1,6 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
 using NtFreX.Blog.Configuration;
-using NtFreX.ConfigFlow.DotNet;
 
 namespace NtFreX.Blog.Data.EfCore
 {

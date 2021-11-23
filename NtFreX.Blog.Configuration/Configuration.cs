@@ -47,6 +47,7 @@
     {
         public const string AspNetCoreEnvironment = "ASPNETCORE_ENVIRONMENT";
         public const string WebConfigProviderSecret = "NtFrexConfigSecret";
+        public const string WebConfigProviderPath = "NtFrexConfigPath";
         public const string MySqlConfigUser = "NtFrexMySqlConfigUser";
         public const string MySqlConfigPw = "NtFrexMySqlConfigPw";
         public const string MySqlConfigServer = "NtFrexMySqlConfigServer";
