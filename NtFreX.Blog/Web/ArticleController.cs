@@ -2,10 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using NtFreX.Blog.Auth;
-using NtFreX.Blog.Data;
+using NtFreX.Blog.Core;
 using NtFreX.Blog.Models;
 using NtFreX.Blog.Services;
-using NtFreX.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
