@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -56,9 +57,8 @@ namespace NtFreX.Blog.Auth
 
             var tags = new[] {
                 new KeyValuePair<string, object>("scheme", AuthenticationScheme),
-                new KeyValuePair<string, object>("principal", authenticationResult?.Principal?.GetIdClaim()),
-                new KeyValuePair<string, object>("machine", System.Environment.MachineName)
-            };
+                new KeyValuePair<string, object>("principal", authenticationResult?.Principal?.GetIdClaim())
+            }.Concat(MetricTags.GetDefaultTags()).ToArray();
 
             RequestCount.Add(1, tags);
             RequestAuthenticatedCount.Add(authenticationResult.Succeeded ? 1 : 0, tags);

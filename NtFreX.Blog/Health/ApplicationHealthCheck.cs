@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Logging;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,11 +31,9 @@ namespace NtFreX.Blog.Health
 
             var result = await DoCheckHealthAsync(context, cancellationToken);
 
-            var tags = new[]
-            {
-                new KeyValuePair<string, object>("name", healthCheckName),
-                new KeyValuePair<string, object>("machine", System.Environment.MachineName)
-            };
+            var tags = new[] {
+                new KeyValuePair<string, object>("name", healthCheckName)
+            }.Concat(MetricTags.GetDefaultTags()).ToArray();
 
             HealthCheckCounter.Add(1, tags);
             DegratedCounter.Add(result.Status == HealthStatus.Degraded ? 1 : 0, tags);

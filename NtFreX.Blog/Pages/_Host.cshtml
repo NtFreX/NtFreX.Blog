@@ -33,6 +33,36 @@
 
     </environment>
 
+    @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.ReCaptchaSiteKey))
+    {
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        <script>
+            function googleRecaptcha(dotNetObject, selector, sitekeyValue, callback, expiredCallback) {
+                return grecaptcha.render(selector, {
+                    'sitekey': sitekeyValue,
+                    'callback': (response) => {
+                        if (callback) {
+                            dotNetObject.invokeMethodAsync(callback, response);
+                        }
+                    },
+                    'expired-callback': () => {
+                        if (expiredCallback) {
+                            dotNetObject.invokeMethodAsync(expiredCallback);
+                        }
+                    }
+                });
+            };
+
+            function googleRecaptchaGetResponse(response) {
+                return grecaptcha.getResponse(response);
+            }
+
+            function googleRecaptchaReset() {
+                grecaptcha.reset();
+            }
+        </script>
+    }
+
     <title>@Configuration.BlogConfiguration.BlogTitle</title>
     <meta charset="utf-8" />
     <meta name="description" content="@Configuration.BlogConfiguration.BlogDescription" />

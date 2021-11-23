@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MongoDB.Driver;
 using NtFreX.Blog.Cache;
+using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Logging;
 using NtFreX.Blog.Messaging;
@@ -56,9 +57,8 @@ namespace NtFreX.Blog.Services
             await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId));
 
             var tags = new[] {
-                    new KeyValuePair<string, object>("user", model.User),
-                    new KeyValuePair<string, object>("machine", Environment.MachineName)
-            };
+                    new KeyValuePair<string, object>("user", model.User)
+            }.Concat(MetricTags.GetDefaultTags()).ToArray();
             CommmentCreatedCounter.Add(1, tags);
 
             await messageBus.SendMessageAsync("ntfrex.blog.comments", JsonSerializer.Serialize(model));

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -61,10 +61,9 @@ namespace NtFreX.Blog.Cache
             };
 
             var tags = new[] {
-                new KeyValuePair<string, object>("key", key),
-                new KeyValuePair<string, object>("machine", System.Environment.MachineName),
+                new KeyValuePair<string, object>("key", key),                
                 new KeyValuePair<string, object>("type", BlogConfiguration.ApplicationCacheType.ToString())
-            };
+            }.Concat(MetricTags.GetDefaultTags()).ToArray();
 
             CacheHitCounter.Add(1, tags);
             CacheHitSuccessCounter.Add(cacheResult == null ? 0 : 1, tags);

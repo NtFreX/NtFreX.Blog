@@ -2,9 +2,12 @@ This is the source code of my blog. A great place to test things in a used produ
 
 **Build and run localy**
 
- - Set a value for NtFrexMySqlConfigPw in launchSettings.json
- - Set a value for MYSQL_ROOT_PASSWORD in local_infra.yaml
- - Set a value for Pwd in the NtFreX.Blog.Development.MySqlDbConnectionString connection string in 01-databases.sql
+If you want you can change the default password of the local mysql instance or other development infrastructure in the following files.
+
+ - (Set a value for NtFrexMySqlConfigPw in launchSettings.json)
+ - (Set a value for MYSQL_ROOT_PASSWORD in local_infra.yaml)
+ - (Set a value for Pwd in the NtFreX.Blog.Development.MySqlDbConnectionString connection string in 01-databases.sql)
+ - (More..)
 
 ```
 docker-compose -f .\infrastructure\dev\local_infra.yaml up --force-recreate --abort-on-container-exit
@@ -14,6 +17,7 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
  - browse https://localhost:5001/ to view the blog
  - browse http://localhost:9411/ for Zipkin
  - browse http://localhost:9090/ for Prometheus
+ - browse http://localhost:15672/ for RabbitMq
  - mysql is running on 127.0.0.1:3306
 
 **Dependencies**
@@ -32,7 +36,7 @@ The `aws-beanstalk-tools-defaults.json` file can be used to deploy the beanstalk
 
 There is IaC for the health check lambda but you need deploy the code yourself.
 
-To build the SSL certificate renewal container you can set the variables in the `build_cert_renewal_container.ps1` file.
+To build the SSL certificate renewal container you can set the variables in the `build_and_publish_cert_renewal.ps1` file.
  - Note: The DbPasswordVariable needs to be a base64 encoded value to support all special characters.
  - Note: The acme credentials need to be resoved manualy.
  - Note: The lambda for the cert renewal container with event (rate(2months)) has to be created manually.
@@ -46,7 +50,6 @@ To build the SSL certificate renewal container you can set the variables in the 
  - deployment pipeline
    - for web app
  - static code analyzis (dependency security, code security, improvements, etc)
- - dependabot
  - server side and client side model validation (componentmodel)
    - action filter
   
@@ -60,9 +63,8 @@ To build the SSL certificate renewal container you can set the variables in the 
    - for cert renewal container
    - for health check lambda
    - cleanup cloudfare cache after release
- - get rid of ntfrex depdencencies
-   - get rid of private nuget repo (in docker file)
 
+ - install newest cert renewal container in lambda after publish
  - client usage analythics
  - randomize cache livetime so not all caches are invalidated at the same time
  - cache blazor pages by route

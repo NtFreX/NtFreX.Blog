@@ -1,6 +1,7 @@
 ﻿@page "/login"
 
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 
@@ -11,6 +12,7 @@
 
 <input @bind-value="username" type="text" />
 <input @bind-value="password" type="password" />
+<NtFreX.Blog.Client.Components.Recaptcha @bind-CaptchaResponse="captchaResponse" />
 <button @onclick="@LoginAsync">Login</button>
 
 
@@ -18,13 +20,16 @@
 @code {
     private string username;
     private string password;
+    private string captchaResponse;
 
     protected override async Task OnParametersSetAsync()
         => await localStorage.RemoveItemAsync(JwtTokenHttpHandler.SessionStorageKey);
 
     private async Task LoginAsync()
     {
-        var response = await Http.PostAsJsonAsync($"/api/login", new LoginCredentialsDto { Username = username, Password = password });
+        var response = await Http.PostAsJsonAsync($"/api/login", new LoginCredentialsDto { Username = username, Password = password, CaptchaResponse = captchaResponse });
+        await JSRuntime.InvokeVoidAsync("googleRecaptchaReset");
+
         if (!response.IsSuccessStatusCode)
             return;
 

@@ -10,10 +10,12 @@ namespace NtFreX.Blog.Web
     public class CommentController : ControllerBase
     {
         private readonly CommentService commentService;
+        private readonly RecaptchaManager recaptchaManager;
 
-        public CommentController(CommentService commentService)
+        public CommentController(CommentService commentService, RecaptchaManager recaptchaManager)
         {
             this.commentService = commentService;
+            this.recaptchaManager = recaptchaManager;
         }
 
         [HttpGet("byArticleId/{articleId}")]
@@ -21,7 +23,13 @@ namespace NtFreX.Blog.Web
             => await commentService.GetCommentsByArticleIdAsync(articleId);
 
         [HttpPost()]
-        public async Task InsertCommentAsync([FromBody] CreateCommentDto model)
-            => await commentService.InsertCommentAsync(model);
+        public async Task<IActionResult> InsertCommentAsync([FromBody] CreateCommentDto model)
+        {
+            if (!await recaptchaManager.ValidateReCaptchaResponseAsync(model.CaptchaResponse))
+                return Ok();
+
+            await commentService.InsertCommentAsync(model);
+            return Ok();
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace NtFreX.Blog.Configuration
+﻿using System.Collections.Generic;
+
+namespace NtFreX.Blog.Configuration
 {
     public sealed class BlogConfiguration
     {
@@ -36,8 +38,16 @@
         public static bool IsAwsEBS => Environment.IsProduction();
         public static MessageBusType MessageBus => Environment.IsProduction() ? MessageBusType.AwsEventBus : MessageBusType.RabbitMq;
         public static CacheType ApplicationCacheType => Environment.IsProduction() ? CacheType.InMemory : CacheType.Distributed;
+        public static string ReCaptchaSiteKey => Environment.IsProduction() ? "6LduElQdAAAAAD_Udn9ZwNUhQLJr5GP2Ih8Y-dYt" : "6LecX1QdAAAAAFyT0miXlDaM_3-5o3W8FduNfIRJ";
     }
-
+    public sealed class MetricTags
+    {
+        public static KeyValuePair<string, object>[] GetDefaultTags() => new[] {
+            new KeyValuePair<string, object>("environment", Environment.AspNetCoreEnvironment),
+            new KeyValuePair<string, object>("clientId", Constants.ClientId),
+            new KeyValuePair<string, object>("machine", System.Environment.MachineName)
+        };
+    }
     public sealed class Constants
     {
         public const string ClientId = "NtFreX.Blog-064d997e-54ee-4dc1-854c-3c742d2fe54e";
@@ -55,6 +65,7 @@
 
     public static class ConfigNames
     {
+        public static string RecaptchaSecret => SanitizeConfigName("NtFreX.Blog.RecaptchaSecret");
         public static string MongoDbConnectionString => SanitizeConfigName("NtFreX.Blog.MongoDbConnectionString");
         public static string RedisConnectionString => SanitizeConfigName("NtFreX.Blog.RedisConnectionString");
         public static string RabbitMqHost => SanitizeConfigName("NtFreX.Blog.RabbitMqHost");
