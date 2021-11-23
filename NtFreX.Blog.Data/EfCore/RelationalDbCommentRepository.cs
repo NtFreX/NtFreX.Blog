@@ -27,7 +27,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task<IReadOnlyList<CommentModel>> FindByArticleIdAsync(string id)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbCommentRepository)}.{nameof(FindByArticleIdAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbCommentRepository)}.{nameof(FindByArticleIdAsync)}", ActivityKind.Server))
             {
                 var dbModels = await connectionFactory.Connection.GetAllAsync<Models.CommentModel>();
                 return mapper.Map<List<CommentModel>>(dbModels.Where(x => x.ArticleId.ToString() == id).ToList());

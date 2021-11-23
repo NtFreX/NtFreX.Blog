@@ -3,10 +3,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Config;
+using NLog.Web;
 using NtFreX.Blog.Configuration;
+using NtFreX.Blog.Logging;
 using NtFreX.ConfigFlow.DotNet;
 using OpenTelemetry.Logs;
 using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Net.Security;
 using System.Threading.Tasks;
@@ -15,6 +21,9 @@ namespace NtFreX.Blog
 {
     public class Program
     {
+        public static Meter Meter => new Meter(BlogConfiguration.MetricsName);
+        public static ActivitySource ActivitySource => new ActivitySource(BlogConfiguration.ActivitySourceName);
+
         private static IConfigProvider GetConfigProvider()
         {
             return BlogConfiguration.ConfigProvider switch
@@ -29,14 +38,33 @@ namespace NtFreX.Blog
         public static async Task<(IConfigurationRoot Configuration, IConfigProvider ConfigProvider, ConfigPreloader ConfigLoader, string ReddisConnectionString)> InitializeAppAsync()
         {
             IConfigProvider configProvider = GetConfigProvider();
-            var configLoader = await ConfigPreloader.LoadAsync(configProvider, ConfigNames.MongoDbConnectionString, ConfigNames.MySqlDbConnectionString, ConfigNames.BlogDatabaseName, ConfigNames.JwtSecret, ConfigNames.AdminUsername, ConfigNames.AdminPassword);
-            var reddisConnectionString = await configProvider.GetAsync(ConfigNames.RedisConnectionString);
+            var configLoader = await ConfigPreloader.LoadAsync(configProvider);
+            
+            await configLoader.LoadByKeysAsync(ConfigNames.BlogDatabaseName, ConfigNames.JwtSecret, ConfigNames.AdminUsername, ConfigNames.AdminPassword);
+            if(BlogConfiguration.PersistenceLayer == PersistenceLayerType.MongoDb)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.MongoDbConnectionString);
+            }
+            else if(BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.MySqlDbConnectionString);
+            }
+
+            if(BlogConfiguration.MessageBus == MessageBusType.RabbitMq)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.RabbitMqHost, ConfigNames.RabbitMqUser, ConfigNames.RabbitMqPassword);
+            }
+            else if (BlogConfiguration.MessageBus == MessageBusType.AwsSqs || BlogConfiguration.MessageBus == MessageBusType.AwsEventBus)
+            {
+                await configLoader.LoadByKeysAsync(ConfigNames.AwsMessageBusAccessKeyId, ConfigNames.AwsMessageBusAccessKey);
+            }
 
             var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
                 .AddJsonFile($"appsettings.{Configuration.Environment.AspNetCoreEnvironment}.json", optional: true)
                 .Build();
 
+            var reddisConnectionString = BlogConfiguration.ApplicationCacheType == CacheType.Distributed ? await configProvider.GetAsync(ConfigNames.RedisConnectionString) : string.Empty;
             return (config, configProvider, configLoader, reddisConnectionString);
         }
 
@@ -55,9 +83,27 @@ namespace NtFreX.Blog
 
         public static async Task Main(string[] args)
         {
-            var app = await InitializeAppAsync();
-            var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);
-            await host.RunAsync();
+            ConfigurationItemFactory.Default.LayoutRenderers.RegisterDefinition("ntfrex-traceId", typeof(TraceIdLayoutRenderer));
+            ConfigurationItemFactory.Default.LayoutRenderers.RegisterDefinition("ntfrex-user", typeof(UserLayoutRenderer));
+
+            var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+            try
+            {
+                logger.Debug("init main");
+
+                var app = await InitializeAppAsync();
+                var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);
+                await host.RunAsync();
+            }
+            catch (Exception exception)
+            {
+                logger.Error(exception, "Stopped program because of exception");
+                throw;
+            }
+            finally
+            {
+                LogManager.Shutdown();
+            }
         }
 
         public static IHost CreateHost(string[] args, IConfigurationRoot configuration, IConfigProvider configProvider, ConfigPreloader configLoader, string reddisConnectionString)
@@ -68,7 +114,6 @@ namespace NtFreX.Blog
                 .ConfigureLogging(logging => 
                 {
                     logging.ClearProviders();
-                    logging.AddLambdaLogger(configuration.GetSection("Logging").Get<LambdaLoggerOptions>());
                     logging.AddOpenTelemetry(options =>
                     {
                         if (!string.IsNullOrEmpty(BlogConfiguration.OtlpLogExporterPath))
@@ -77,6 +122,7 @@ namespace NtFreX.Blog
                         }
                     });
                 })
+                .UseNLog()
                 .ConfigureWebHostDefaults(webHost =>
                 {
                     ConfigureWebHostBuilder(webHost, configuration, configProvider, configLoader, reddisConnectionString)

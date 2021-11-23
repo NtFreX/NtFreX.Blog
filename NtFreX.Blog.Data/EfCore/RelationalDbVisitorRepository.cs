@@ -27,7 +27,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task<long> CountByArticleIdAsync(string id)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbVisitorRepository)}.{nameof(CountByArticleIdAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbVisitorRepository)}.{nameof(CountByArticleIdAsync)}", ActivityKind.Server))
             {
                 var visitors = await connectionFactory.Connection.GetAllAsync<Models.VisitorModel>();
                 var models = mapper.Map<List<VisitorModel>>(visitors);

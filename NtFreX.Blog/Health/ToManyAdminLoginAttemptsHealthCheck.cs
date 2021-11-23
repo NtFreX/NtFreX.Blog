@@ -1,19 +1,21 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Configuration;
+using NtFreX.Blog.Logging;
 using NtFreX.Blog.Web;
 using NtFreX.ConfigFlow.DotNet;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NtFreX.Blog
+namespace NtFreX.Blog.Health
 {
     public class ToManyAdminLoginAttemptsHealthCheck : ApplicationHealthCheck
     {
         private readonly ApplicationCache cache;
         private readonly ConfigPreloader config;
 
-        public ToManyAdminLoginAttemptsHealthCheck(ApplicationCache cache, ConfigPreloader config)
+        public ToManyAdminLoginAttemptsHealthCheck(ApplicationCache cache, ConfigPreloader config, TraceActivityDecorator traceActivityDecorator)
+            : base(traceActivityDecorator)
         {
             this.cache = cache;
             this.config = config;

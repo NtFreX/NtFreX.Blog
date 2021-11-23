@@ -7,7 +7,6 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
 WORKDIR /src
 COPY . .
 
-#TODO: get rid of private nuget repo
 COPY "./nuget" "/nuget"
 
 RUN dotnet build "./NtFreX.Blog/NtFreX.Blog.csproj" -c Release -o /app/build

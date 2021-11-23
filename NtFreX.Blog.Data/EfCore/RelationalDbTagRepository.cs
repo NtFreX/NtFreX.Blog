@@ -28,7 +28,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task<IReadOnlyList<TagModel>> FindByArticleIdAsync(string articleId)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbTagRepository)}.{nameof(FindByArticleIdAsync)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbTagRepository)}.{nameof(FindByArticleIdAsync)}", ActivityKind.Server))
             {
                 var dbModels = await connectionFactory.Connection.GetAllAsync<Models.TagModel>();
                 return mapper.Map<List<TagModel>>(dbModels.Where(x => x.ArticleId == articleId).ToList());
@@ -38,7 +38,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task UpdateTagsForArticle(string[] newTags, string articleId)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbTagRepository)}.{nameof(UpdateTagsForArticle)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbTagRepository)}.{nameof(UpdateTagsForArticle)}", ActivityKind.Server))
             {
                 foreach (var tag in await FindByArticleIdAsync(articleId))
                 {

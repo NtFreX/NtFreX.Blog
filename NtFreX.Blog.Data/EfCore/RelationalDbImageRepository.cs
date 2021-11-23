@@ -25,7 +25,7 @@ namespace NtFreX.Blog.Data.EfCore
         public async Task<ImageModel> FindByName(string name)
         {
             var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var sampleActivity = activitySource.StartActivity($"{nameof(RelationalDbImageRepository)}.{nameof(FindByName)}", ActivityKind.Server))
+            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbImageRepository)}.{nameof(FindByName)}", ActivityKind.Server))
             {
                 var dbModels = await connectionFactory.Connection.GetAllAsync<Models.ImageModel>();
                 return mapper.Map<ImageModel>(dbModels.First(x => x.Name == name));

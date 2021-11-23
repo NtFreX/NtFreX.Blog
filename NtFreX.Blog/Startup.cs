@@ -15,6 +15,9 @@ using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Data.EfCore;
 using NtFreX.Blog.Data.MongoDb;
+using NtFreX.Blog.Health;
+using NtFreX.Blog.Logging;
+using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Services;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
 using OpenTelemetry.Instrumentation.AspNetCore;
@@ -93,6 +96,7 @@ namespace NtFreX.Blog
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddSqlClientInstrumentation()
+                    .AddAWSInstrumentation()
                     .AddSource(BlogConfiguration.ActivitySourceName)
                     .SetResourceBuilder(resourceBuilder);
 
@@ -122,7 +126,25 @@ namespace NtFreX.Blog
             {
                 services.AddMemoryCache();
             }
-                        
+
+            if (BlogConfiguration.MessageBus == MessageBusType.RabbitMq)
+            {
+                services.AddTransient<IMessageBus, RabbitMessageBus>();
+            }
+            else if (BlogConfiguration.MessageBus == MessageBusType.AwsSqs)
+            {
+                services.AddTransient<IMessageBus, AwsSqsMessageBus>();
+            }
+            else if (BlogConfiguration.MessageBus == MessageBusType.AwsEventBus)
+            {
+                services.AddTransient<IMessageBus, AwsEventBridgeMessageBus>();
+            }
+            else
+            {
+                services.AddTransient<IMessageBus, NullMessageBus>();
+            }
+
+
             services.AddAuthorization(options => options.AddPolicy(AuthorizationPolicyNames.OnlyAsAdmin, configure => configure.AddRequirements(new OnlyAsAdminAuthorizationRequirement())));
             services.AddSingleton<IAuthorizationHandler, OnlyAsAdminAuthorizationHandler>();
             services.AddTransient<AuthorizationManager>();
@@ -136,6 +158,7 @@ namespace NtFreX.Blog
                 options.Conventions.AuthorizeFolder("/Private", AuthorizationPolicyNames.OnlyAsAdmin);
             });
 
+            services.AddTransient<TraceActivityDecorator>();
             services.AddTransient<ApplicationCache>();
             services.AddTransient<ArticleService>();
             services.AddTransient<CommentService>();
@@ -166,9 +189,24 @@ namespace NtFreX.Blog
             }
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, TraceActivityDecorator traceActivityDecorator, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
         {
             ServerCertificateSelector.Instance.SetLoggerFactory(loggerFactory);
+
+            app.Use(async (context, next) =>
+            {
+                using var activity = traceActivityDecorator.StartActivity(name: "NtFreX.Blog.Request");
+
+                httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId] = activity.TraceId;
+
+                var logger = loggerFactory.CreateLogger("NtFreX.Blog.RequestScope");
+                using (logger.BeginScope(activity.TraceId))
+                {
+                    logger.LogTrace("Begin request scope");
+                    await next();
+                    logger.LogTrace("End request scope");
+                }
+            });
 
             if (env.IsProduction())
             {
@@ -236,7 +274,6 @@ namespace NtFreX.Blog
                 endpoints.MapFallbackToPage("/_Host");
             });
 
-            // TODO: replace with data layer and ef
             if (env.IsDevelopment() && BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
             {
                 var connectionFactory = serviceProvider.GetRequiredService<MySqlDatabaseConnectionFactory>();
