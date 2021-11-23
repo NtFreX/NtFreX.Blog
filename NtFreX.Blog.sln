@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Configuration",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Data", "NtFreX.Blog.Data\NtFreX.Blog.Data.csproj", "{A011E444-F50A-413D-B2CA-CAED551AFCBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtFreX.Blog.Core", "NtFreX.Blog.Core\NtFreX.Blog.Core.csproj", "{B9DFF829-DBD6-462D-BC0C-19DA95237102}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Core", "NtFreX.Blog.Core\NtFreX.Blog.Core.csproj", "{B9DFF829-DBD6-462D-BC0C-19DA95237102}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
