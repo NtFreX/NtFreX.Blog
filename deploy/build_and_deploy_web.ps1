@@ -13,12 +13,12 @@ dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime 
 
 
 Copy-Item ./NtFreX.Blog/bin/Release/net5.0/linux-x64/publish ./publish -Recurse
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#AspNetCoreEnv', $environment) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigPw', $mysqlConfigPw) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigServer', $mysqlConfigServer) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigUser', $mysqlConfigUser) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigSecret', $configSecret) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigPath', $configPath) | Set-Content ./publish/.ebextensions/ebs.config
+(Get-Content ./publish/.ebextensions/ebs.yml).replace('#AspNetCoreEnv', $environment) | Set-Content ./publish/.ebextensions/ebs.yml
+(Get-Content ./publish/.ebextensions/ebs.yml).replace('#MySqlConfigPw', $mysqlConfigPw) | Set-Content ./publish/.ebextensions/ebs.yml
+(Get-Content ./publish/.ebextensions/ebs.yml).replace('#MySqlConfigServer', $mysqlConfigServer) | Set-Content ./publish/.ebextensions/ebs.yml
+(Get-Content ./publish/.ebextensions/ebs.yml).replace('#MySqlConfigUser', $mysqlConfigUser) | Set-Content ./publish/.ebextensions/ebs.yml
+(Get-Content ./publish/.ebextensions/ebs.yml).replace('#ConfigSecret', $configSecret) | Set-Content ./publish/.ebextensions/ebs.yml
+(Get-Content ./publish/.ebextensions/ebs.yml).replace('#ConfigPath', $configPath) | Set-Content ./publish/.ebextensions/ebs.yml
 
 tar -C ./publish -vacf publish.zip .
 
