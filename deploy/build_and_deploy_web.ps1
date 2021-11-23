@@ -46,10 +46,6 @@ aws elasticbeanstalk update-environment `
   --environment-name $app-$ebsEnv `
   --solution-stack-name "64bit Amazon Linux 2 v2.2.6 running .NET Core" `
   --version-label $version `
-  --option-settings `
-  Namespace=aws:ec2:instances,OptionName=InstanceTypes,Value=t2.nano `
-  Namespace=aws:elasticbeanstalk:environment,OptionName=EnvironmentType,Value=SingleInstance `
-  Namespace=aws:elasticbeanstalk:xray,OptionName=XRayEnabled,Value=true `
-  Namespace=aws:elasticbeanstalk:healthreporting:system,OptionName=SystemType,Value=enhanced
+  --option-settings file://ebs.config
 
 echo "deployed application " + $version + " with source " + $filename
