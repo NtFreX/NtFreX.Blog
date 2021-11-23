@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: 5.0.403
 https://github.com/aws-actions/configure-aws-credentials/blob/master/action.yml
-    - run: |
-          ./deploy/build_and_deploy_web.ps1
-    - run: |
-          ./deploy/build_and_publish_cert_renewal.ps1
+    - name: Deploy web app
+      run: ./deploy/build_and_deploy_web.ps1
+    - name: Deploy cert renewal container
+      run: ./deploy/build_and_publish_cert_renewal.ps1
