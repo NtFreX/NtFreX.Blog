@@ -30,6 +30,28 @@ jobs:
         dotnet-version: 5.0.403
     
     - name: Deploy web app
+      env:
+        VAR_ENVIRONMENT: ${{ secrets.VAR_ENVIRONMENT }}
+        VAR_MYSQLCONFIGPW: ${{ secrets.VAR_MYSQLCONFIGPW }}
+        VAR_MYSQLCONFIGUSER: ${{ secrets.VAR_MYSQLCONFIGUSER }}
+        VAR_MYSQLCONFIGSERVER: ${{ secrets.VAR_MYSQLCONFIGSERVER }}
+        VAR_CONFIGSECRET: ${{ secrets.VAR_CONFIGSECRET }}
+        VAR_CONFIGPATH: ${{ secrets.VAR_CONFIGPATH }}
+        VAR_S3BUCKET: ${{ secrets.VAR_S3BUCKET }}
+        VAR_APP: ${{ secrets.VAR_APP }}
+        VAR_EBSENV: ${{ secrets.VAR_EBSENV }}
       run: ./deploy/build_and_deploy_web.ps1
     - name: Deploy cert renewal container
+      env:
+        VAR_DOCKERREGISTRY: ${{ secrets.VAR_DOCKERREGISTRY }}
+        VAR_DOMAINSSLCERTPW: ${{ secrets.VAR_DOMAINSSLCERTPW }}
+        VAR_DNSAUTHCHALLENGEUSER: ${{ secrets.VAR_DNSAUTHCHALLENGEUSER }}
+        VAR_DNSAUTHCHALLENGEPW: ${{ secrets.VAR_DNSAUTHCHALLENGEPW }}
+        VAR_DNSAUTHCHALLENGEFULLDOMAIN: ${{ secrets.VAR_DNSAUTHCHALLENGEFULLDOMAIN }}
+        VAR_DNSAUTHCHALLENGESUBDOMAIN: ${{ secrets.VAR_DNSAUTHCHALLENGESUBDOMAIN }}
+        VAR_DOMAINSSLCERTPWCONFIGKEY: ${{ secrets.VAR_DOMAINSSLCERTPWCONFIGKEY }}
+        VAR_DOMAINSSLCERTVALUECONFIGKEY: ${{ secrets.VAR_DOMAINSSLCERTVALUECONFIGKEY }}
+        VAR_DBHOSTVARIABLE: ${{ secrets.VAR_DBHOSTVARIABLE }}
+        VAR_DBUSERVARIABLE: ${{ secrets.VAR_DBUSERVARIABLE }}
+        VAR_DBPASSWORDVARIABLE: ${{ secrets.VAR_DBPASSWORDVARIABLE }}
       run: ./deploy/build_and_publish_cert_renewal.ps1
