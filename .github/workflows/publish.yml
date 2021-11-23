@@ -7,10 +7,16 @@ on:
 jobs:
   publish:
     runs-on: windows-latest    
+    environment: production
     permissions:
       id-token: write
       contents: read
     steps:
+    - name: ASP.NET environment
+      run: echo ${{ secrets.VAR_ENVIRONMENT }}
+    - name: AWS EBS environment
+      run: echo ${{ secrets.VAR_EBSENV }}
+      
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
