@@ -19,22 +19,22 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
  - browse http://localhost:9090/ for Prometheus
  - browse http://localhost:15672/ for RabbitMq
  - mysql is running on 127.0.0.1:3306
+ - redis is running on 127.0.0.1:6022
 
 **Dependencies**
 
  - Mysql/MongoDb
  - (Redis)
- - [to be removed]  NtFreX.Core/ NtFreX.Core.Web / NtFreX.Audio / NtFreX.Audio.Infrastructure / NtFreX.ConfigFlow.DotNet
+ - (RabbitMq/Aws SQS/Aws Event bridge)
 
  **Deployment**
  
-To configure the production environment you can set environment variables in the `https-instance-single.config` file.
+To configure the production environment you can set environment variables in the `ebs.config`, 'build_and_deploy_web.ps1' and 'build_and_publish_cert_renewal.ps1' files.
 To configure/customize this project you can start with the Configuration.cs file in the NtFreX.Blog.Configuration project. It contains a lot of options to play around. (Examples can be found in `01-databases.sql`)
 For all values in the ConfigNames class a value must be set where the choosen configuration provider can find it.
 Next you might want to add your own privacy.txt, ads,txt, manifest.json, references.txt, robots.txt, security.txt and terms.html.
-The `aws-beanstalk-tools-defaults.json` file can be used to deploy the beanstalk app with the aws cli.
 
-There is IaC for the health check lambda but you need deploy the code yourself.
+There is IaC for the health check lambda only. The web deploy script does only update an ebs environment and not create any if it does not exist.
 
 To build the SSL certificate renewal container you can set the variables in the `build_and_publish_cert_renewal.ps1` file.
  - Note: The DbPasswordVariable needs to be a base64 encoded value to support all special characters.
