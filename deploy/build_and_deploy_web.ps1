@@ -3,6 +3,7 @@ $mysqlConfigPw = "#mysqlConfigPw#"
 $mysqlConfigUser = "#mysqlConfigUser#"
 $mysqlConfigServer = "#mysqlConfigServer#"
 $configSecret = "#configSecret#"
+$configPath = "#configPath#"
 $s3bucket = "#s3bucket#"
 $app = "#app#"
 $ebsEnv = "#ebsEnv#"
@@ -17,6 +18,7 @@ Copy-Item ./NtFreX.Blog/bin/Release/net5.0/linux-x64/publish ./publish -Recurse
 (Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigServer', $mysqlConfigServer) | Set-Content ./publish/.ebextensions/ebs.config
 (Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigUser', $mysqlConfigUser) | Set-Content ./publish/.ebextensions/ebs.config
 (Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigSecret', $configSecret) | Set-Content ./publish/.ebextensions/ebs.config
+(Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigPath', $configPath) | Set-Content ./publish/.ebextensions/ebs.config
 
 tar -C ./publish -vacf publish.zip .
 

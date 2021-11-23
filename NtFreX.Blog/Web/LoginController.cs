@@ -8,7 +8,6 @@ using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Logging;
 using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Models;
-using NtFreX.ConfigFlow.DotNet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;

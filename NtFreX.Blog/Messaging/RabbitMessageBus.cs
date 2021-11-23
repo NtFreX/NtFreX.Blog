@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System.Threading.Tasks;
 using NtFreX.Blog.Configuration;
-using NtFreX.ConfigFlow.DotNet;
 using RabbitMQ.Client;
 
 namespace NtFreX.Blog.Messaging
