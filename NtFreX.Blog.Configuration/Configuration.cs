@@ -29,7 +29,7 @@ namespace NtFreX.Blog.Configuration
         public const string MetricsName = "ApplicationMetrics";
         public const string ActivitySourceName = "ApplicationActivitySource";
         public const bool UsePrometheusScrapingEndpoint = false;
-        public const bool EnableLogins = false;
+        public const bool EnableLogins = true;
         public const string OtlpLogExporterPath = "http://localhost:4317";
         public const string OtlpMetricsExporterPath = "http://localhost:4317";
         public static string OtlpTraceExporterPath => Environment.IsDevelopment() ? "http://localhost:4317" : "http://localhost:2000";
