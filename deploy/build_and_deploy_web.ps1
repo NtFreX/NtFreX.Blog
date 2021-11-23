@@ -43,7 +43,7 @@ aws elasticbeanstalk update-environment `
   --environment-name $app-$ebsEnv `
   --solution-stack-name "64bit Amazon Linux 2 v2.2.6 running .NET Core" `
   --version-label $version `
-  --option-settings file://publish/.ebextensions/ebs.config
+  --option-settings file://publish/.ebextensions/ebs.yml
 
 Remove-Item ./publish -Recurse
 
