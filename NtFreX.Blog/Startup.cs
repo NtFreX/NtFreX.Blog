@@ -158,6 +158,7 @@ namespace NtFreX.Blog
                 options.Conventions.AuthorizeFolder("/Private", AuthorizationPolicyNames.OnlyAsAdmin);
             });
 
+            services.AddTransient<RecaptchaManager>();
             services.AddTransient<TraceActivityDecorator>();
             services.AddTransient<ApplicationCache>();
             services.AddTransient<ArticleService>();

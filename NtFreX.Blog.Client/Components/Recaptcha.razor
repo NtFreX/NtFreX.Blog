@@ -1,0 +1,49 @@
+﻿@inject IJSRuntime JSRuntime
+
+@if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.ReCaptchaSiteKey))
+{
+    <div style="float:left;clear:none;" id="@id"></div>
+}
+
+@code {
+    private string id = "google_recaptcha" + Guid.NewGuid().ToString();
+    private string captchaResponse;
+
+    [Parameter]
+    public EventCallback<string> CaptchaResponseChanged { get; set; }
+
+    [Parameter]
+    public string CaptchaResponse
+    {
+        get => captchaResponse; set
+        {
+            if (this.captchaResponse != value)
+            {
+                this.captchaResponse = value;
+                CaptchaResponseChanged.InvokeAsync(value).Wait();
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(Configuration.BlogConfiguration.ReCaptchaSiteKey))
+        {
+            await JSRuntime.InvokeAsync<int>(
+                "googleRecaptcha",
+                new object[] { DotNetObjectReference.Create(this), id, Configuration.BlogConfiguration.ReCaptchaSiteKey, "CaptchaCallbackOnSuccess", "CaptchaCallbackOnExpire" });
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    [JSInvokable]
+    public void CaptchaCallbackOnSuccess(string response)
+    {
+        CaptchaResponse = response;
+    }
+
+    [JSInvokable]
+    public void CaptchaCallbackOnExpire()
+    {
+    }
+}

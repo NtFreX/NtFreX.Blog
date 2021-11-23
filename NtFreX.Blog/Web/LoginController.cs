@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace NtFreX.Blog.Web
         private readonly TraceActivityDecorator traceActivityDecorator;
         private readonly ConfigPreloader configPreloader;
         private readonly ApplicationCache cache;
+        private readonly RecaptchaManager recaptchaManager;
         private readonly ILogger<LoginController> logger;
         private readonly IMessageBus messageBus;
         private readonly IHttpContextAccessor httpContextAccessor;
@@ -35,11 +37,19 @@ namespace NtFreX.Blog.Web
         private static readonly Counter<int> LoginSuccessCounter = Program.Meter.CreateCounter<int>($"LoginSuccess", description: "The number of successful logins");
         private static readonly Counter<int> LoginFailedCounter = Program.Meter.CreateCounter<int>($"LoginFailed", description: "The number of failed logins");
 
-        public LoginController(TraceActivityDecorator traceActivityDecorator, ConfigPreloader configPreloader, ApplicationCache cache, ILogger<LoginController> logger, IMessageBus messageBus, IHttpContextAccessor httpContextAccessor)
+        public LoginController(
+            TraceActivityDecorator traceActivityDecorator, 
+            ConfigPreloader configPreloader, 
+            ApplicationCache cache,
+            RecaptchaManager recaptchaManager,
+            ILogger<LoginController> logger, 
+            IMessageBus messageBus, 
+            IHttpContextAccessor httpContextAccessor)
         {
             this.traceActivityDecorator = traceActivityDecorator;
             this.configPreloader = configPreloader;
             this.cache = cache;
+            this.recaptchaManager = recaptchaManager;
             this.logger = logger;
             this.messageBus = messageBus;
             this.httpContextAccessor = httpContextAccessor;
@@ -54,19 +64,17 @@ namespace NtFreX.Blog.Web
         [HttpPost]
         public async Task<ActionResult> LoginAsync([FromBody] LoginCredentialsDto credentials)
         {
-            if (!BlogConfiguration.EnableLogins)
-                return Ok();
-
             using var activity = traceActivityDecorator.StartActivity();
             activity.AddTag("username", credentials.Username);
 
             logger.LogTrace($"Trying to login user {credentials.Username}");
-            var token = await TryAuthenticateUser(credentials);
+
+            var token = await RunAllAuthenticationChecksAsync(credentials);
 
             var tags = new[] {
-                    new KeyValuePair<string, object>("username", credentials.Username),
-                    new KeyValuePair<string, object>("machine", System.Environment.MachineName)
-            };
+                    new KeyValuePair<string, object>("username", credentials.Username)
+            }.Concat(MetricTags.GetDefaultTags()).ToArray();
+
             LoginAttemptsCounter.Add(1, tags);
             LoginSuccessCounter.Add(string.IsNullOrEmpty(token) ? 0 : 1, tags);
             LoginFailedCounter.Add(string.IsNullOrEmpty(token) ? 1 : 0, tags);
@@ -76,6 +84,20 @@ namespace NtFreX.Blog.Web
 
             logger.LogInformation($"User {credentials.Username} login was {(token == null ? "not" : "")} succesfull");
             return Ok(token);
+        }
+
+        private async Task<string> RunAllAuthenticationChecksAsync(LoginCredentialsDto credentials)
+        {
+            if (!await recaptchaManager.ValidateReCaptchaResponseAsync(credentials.CaptchaResponse))
+                return null;
+
+            if (!BlogConfiguration.EnableLogins)
+            {
+                logger.LogDebug($"Logins are disabled");
+                return null;
+            }
+
+            return await TryAuthenticateUser(credentials);
         }
 
         private async Task<string> TryAuthenticateUser(LoginCredentialsDto credentials)
@@ -106,6 +128,8 @@ namespace NtFreX.Blog.Web
                 await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Username), 0, TimeSpan.FromDays(1));
             }
 
+            logger.LogTrace("Generating an access token");
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -118,6 +142,8 @@ namespace NtFreX.Blog.Web
             };
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
             var token = tokenHandler.WriteToken(securityToken);
+
+            logger.LogInformation("The login was successful and a token has been generated");
             return token;
         }
     }

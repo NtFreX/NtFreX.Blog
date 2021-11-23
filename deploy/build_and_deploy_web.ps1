@@ -1,12 +1,12 @@
-$environment = "#environment#"
-$mysqlConfigPw = "#mysqlConfigPw#"
-$mysqlConfigUser = "#mysqlConfigUser#"
-$mysqlConfigServer = "#mysqlConfigServer#"
-$configSecret = "#configSecret#"
-$configPath = "#configPath#"
-$s3bucket = "#s3bucket#"
-$app = "#app#"
-$ebsEnv = "#ebsEnv#"
+$environment = "$env:VAR_ENVIRONMENT"
+$mysqlConfigPw = "$env:VAR_MYSQLCONFIGPW"
+$mysqlConfigUser = "$env:VAR_MYSQLCONFIGUSER"
+$mysqlConfigServer = "$env:VAR_MYSQLCONFIGSERVER"
+$configSecret = "$env:VAR_CONFIGSECRET"
+$configPath = "$env:VAR_CONFIGPATH"
+$s3bucket = "$env:VAR_S3BUCKET"
+$app = "$env:VAR_APP"
+$ebsEnv = "$env:VAR_EBSENV"
 
 
 dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime linux-x64 --configuration Release
