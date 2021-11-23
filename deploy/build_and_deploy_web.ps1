@@ -46,6 +46,6 @@ aws elasticbeanstalk update-environment `
   --environment-name $app-$ebsEnv `
   --solution-stack-name "64bit Amazon Linux 2 v2.2.6 running .NET Core" `
   --version-label $version `
-  --option-settings file://ebs.json
+  --option-settings file://ebs.config
 
 echo "deployed application " + $version + " with source " + $filename
