@@ -44,6 +44,13 @@ aws elasticbeanstalk update-environment `
   --application-name $app `
   --environment-name $app-$ebsEnv `
   --solution-stack-name "64bit Amazon Linux 2 v2.2.6 running .NET Core" `
-  --version-label $version
+  --version-label $version `
+  --option-settings `
+  Namespace=aws:elasticbeanstalk:application:environment,OptionName=ASPNETCORE_ENVIRONMENT,Value=$environment `
+  Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexMySqlConfigPw,Value=$mysqlConfigPw `
+  Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexMySqlConfigServer,Value=$mysqlConfigServer `
+  Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexMySqlConfigUser,Value=$mysqlConfigUser `
+  Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexConfigSecret,Value=$configSecret `
+  Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexConfigPath,Value=$configPath
 
 echo "deployed application " + $version + " with source " + $filename
