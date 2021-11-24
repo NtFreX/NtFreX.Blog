@@ -46,10 +46,9 @@ To build the SSL certificate renewal container you can set the variables in the 
    - Resources creation
    - command execution
    - option settings
-   - test prod captcha config
  - more metrics/event counters for opentel (gc, etc)
  - test if prod event bridge config works (add iac)
- - init script to replace variables
+ - init script to replace/set variables
  - integration tests
  - dashboard&alarms
  - deployment pipeline
