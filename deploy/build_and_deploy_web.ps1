@@ -8,26 +8,18 @@ $s3bucket = "$env:VAR_S3BUCKET"
 $app = "$env:VAR_APP"
 $ebsEnv = "$env:VAR_EBSENV"
 
-
-dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime linux-x64 --configuration Release
-
-
-Copy-Item ./NtFreX.Blog/bin/Release/net5.0/linux-x64/publish ./publish -Recurse
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#AspNetCoreEnv', $environment) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigPw', $mysqlConfigPw) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigServer', $mysqlConfigServer) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#MySqlConfigUser', $mysqlConfigUser) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigSecret', $configSecret) | Set-Content ./publish/.ebextensions/ebs.config
-(Get-Content ./publish/.ebextensions/ebs.config).replace('#ConfigPath', $configPath) | Set-Content ./publish/.ebextensions/ebs.config
-
-tar -C ./publish -vacf publish.zip .
-Remove-Item ./publish -Recurse
-
-
 $date = Get-Date -Format "yyyyMMddHHmmss"
 $version = "v" + $date
 $filename = "AWSDeploymentArchive_" + $app + "_" + $version + ".zip"
 $description = $app + $version
+
+dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime linux-x64 --configuration Release
+
+Copy-Item ./NtFreX.Blog/bin/Release/net5.0/linux-x64/publish ./publish -Recurse
+
+tar -C ./publish -vacf publish.zip .
+
+Remove-Item ./publish -Recurse
 
 aws s3 cp publish.zip s3://$s3bucket/$app/$filename
 
@@ -40,7 +32,6 @@ aws elasticbeanstalk create-application-version `
   --source-bundle S3Bucket=$s3bucket,S3Key=$app/$filename
 
 # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html
-
 aws elasticbeanstalk update-environment `
   --region us-east-2 `
   --application-name $app `
