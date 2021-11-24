@@ -39,7 +39,7 @@ namespace NtFreX.Blog
             IConfigProvider configProvider = GetConfigProvider();
             var configLoader = await ConfigPreloader.LoadAsync(configProvider);
             
-            await configLoader.LoadByKeysAsync(ConfigNames.BlogDatabaseName, ConfigNames.JwtSecret, ConfigNames.AdminUsername, ConfigNames.AdminPassword);
+            await configLoader.LoadByKeysAsync(ConfigNames.BlogDatabaseName, ConfigNames.JwtSecret, ConfigNames.AdminUsername, ConfigNames.AdminPassword, ConfigNames.RecaptchaSecret);
             if(BlogConfiguration.PersistenceLayer == PersistenceLayerType.MongoDb)
             {
                 await configLoader.LoadByKeysAsync(ConfigNames.MongoDbConnectionString);
