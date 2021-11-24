@@ -2,15 +2,22 @@ This is the source code of my blog. A great place to test things in a used produ
 
 **Build and run localy**
 
-If you want you can change the default password of the local mysql instance or other development infrastructure in the following files.
+If you want you can change the default password or other options of the local development infrastructure in the following files.
 
- - (Set a value for NtFrexMySqlConfigPw in launchSettings.json)
- - (Set a value for MYSQL_ROOT_PASSWORD in local_infra.yaml)
- - (Set a value for Pwd in the NtFreX.Blog.Development.MySqlDbConnectionString connection string in 01-databases.sql)
- - (More..)
+ - launchSettings.json
+ - local_infra.yaml
+ - 01-databases.sql
+ - more...
+
+Runing the development dependencies
 
 ```
 docker-compose -f .\infrastructure\dev\local_infra.yaml up --force-recreate --abort-on-container-exit
+```
+
+Runing the web project
+
+```
 dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
 ```
 
@@ -45,9 +52,9 @@ To build the SSL certificate renewal container you can set the variables in the 
  - fix deploy
    - Resources creation
    - command execution
-   - option settings
- - more metrics/event counters for opentel (gc, etc)
  - test if prod event bridge config works (add iac)
+ - more metrics/event counters for opentel (gc, etc)
+   - disable opentel in prod
  - init script to replace/set variables
  - integration tests
  - dashboard&alarms
