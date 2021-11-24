@@ -15,6 +15,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace NtFreX.Blog.Web
@@ -79,8 +80,14 @@ namespace NtFreX.Blog.Web
             LoginSuccessCounter.Add(string.IsNullOrEmpty(token) ? 0 : 1, tags);
             LoginFailedCounter.Add(string.IsNullOrEmpty(token) ? 1 : 0, tags);
 
-            if(!string.IsNullOrEmpty(token))
-                await messageBus.SendMessageAsync("ntfrex.blog.logins", "user: " + User + ", remoteId: " + httpContextAccessor?.HttpContext?.Connection?.RemoteIpAddress?.ToString());
+            if (!string.IsNullOrEmpty(token)) 
+            {
+                var message = new {
+                    User = credentials.Username, 
+                    RemoteId = httpContextAccessor?.HttpContext?.Connection?.RemoteIpAddress?.ToString()
+                };
+                await messageBus.SendMessageAsync("ntfrex.blog.logins", JsonSerializer.Serialize(message));
+            }
 
             logger.LogInformation($"User {credentials.Username} login was {(token == null ? "not" : "")} succesfull");
             return Ok(token);
