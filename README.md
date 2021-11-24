@@ -43,9 +43,12 @@ To build the SSL certificate renewal container you can set the variables in the 
 
 **TODO**
  - fix deploy
-   - change ebsEnv from preprod to prod
-   - enable login and test prod captcha config
+   - Resources creation
+   - command execution
+   - option settings
+   - test prod captcha config
   
+ - disable comment and login button when captcha not done
  - more metrics/event counters for opentel (gc, etc)
  - test if prod event bridge config works (add iac)
  - init script to replace variables
