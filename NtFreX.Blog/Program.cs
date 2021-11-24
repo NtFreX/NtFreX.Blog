@@ -89,6 +89,7 @@ namespace NtFreX.Blog
             try
             {
                 logger.Debug("init main");
+                logger.Debug($"AspNetCoreEnvironment={Configuration.Environment.AspNetCoreEnvironment}");
 
                 var app = await InitializeAppAsync();
                 var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);

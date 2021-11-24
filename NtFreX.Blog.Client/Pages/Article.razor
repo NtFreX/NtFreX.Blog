@@ -71,7 +71,7 @@ else
                 <div style="margin: 4px;"><span style="width: 20%; display: block; float: left;">User</span><input style="width: 80%;" @bind="newComment.User" /></div>
                 <div style="margin: 4px;"><textarea style="width: 100%;" rows="3" @bind="newComment.Content"></textarea></div>
                 <NtFreX.Blog.Client.Components.Recaptcha @bind-CaptchaResponse="captchaResponse" />
-                <button type="button" class="btn btn-primary" style="float:right; margin:4px;" @onclick="@InsertCommentAsync">Save</button>
+                <button type="button" class="btn btn-primary" style="float:right; margin:4px;" @onclick="@InsertCommentAsync" disabled="@(string.IsNullOrEmpty(captchaResponse))">Save</button>
             </div>
         </div>
 

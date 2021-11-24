@@ -38,7 +38,7 @@ namespace NtFreX.Blog.Configuration
         public static bool IsAwsEBS => Environment.IsProduction();
         public static MessageBusType MessageBus => Environment.IsProduction() ? MessageBusType.AwsEventBus : MessageBusType.RabbitMq;
         public static CacheType ApplicationCacheType => Environment.IsProduction() ? CacheType.InMemory : CacheType.Distributed;
-        public static string ReCaptchaSiteKey => Environment.IsProduction() ? "6LduElQdAAAAAD_Udn9ZwNUhQLJr5GP2Ih8Y-dYt" : "6LecX1QdAAAAAFyT0miXlDaM_3-5o3W8FduNfIRJ";
+        public static string ReCaptchaSiteKey => Environment.IsProduction() ? "6LduElQdAAAAAD_Udn9ZwNUhQLJr5GP2Ih8Y-dYt" : "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
     }
     public sealed class MetricTags
     {
@@ -90,10 +90,19 @@ namespace NtFreX.Blog.Configuration
 
     public sealed class Environment
     {
-        public static string AspNetCoreEnvironment => System.Environment.GetEnvironmentVariable(EnvironmentVariables.AspNetCoreEnvironment);
+        public static string AspNetCoreEnvironment
+        {
+            get
+            {
+                var env = System.Environment.GetEnvironmentVariable(EnvironmentVariables.AspNetCoreEnvironment);
+                if (string.IsNullOrEmpty(env))
+                    return "Production";
+                return env;
+            }
+        }
 
-        public static bool IsDevelopment() => AspNetCoreEnvironment == "Development";
-        public static bool IsProduction() => AspNetCoreEnvironment == "Production";
+        public static bool IsDevelopment() => AspNetCoreEnvironment.ToLower() == "development";
+        public static bool IsProduction() => AspNetCoreEnvironment.ToLower() == "production";
     }
 
     public enum MessageBusType
