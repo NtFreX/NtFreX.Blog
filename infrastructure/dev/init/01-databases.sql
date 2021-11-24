@@ -15,5 +15,5 @@ insert into configuration (`key`, `value`) values
 	('NtFreX.Blog.RabbitMqHost', 'localhost'),
 	('NtFreX.Blog.RabbitMqUser', 'guest'),
 	('NtFreX.Blog.RabbitMqPassword', 'guest'),
-	('NtFreX.Blog.RedisConnectionString', 'localhost:6022')
-	('NtFreX.Blog.RecaptchaSecret', '6LecX1QdAAAAABnahkNXGxw-1-HKJOPWOzMi-ijx');
+	('NtFreX.Blog.RedisConnectionString', 'localhost:6022'),
+	('NtFreX.Blog.RecaptchaSecret', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe');
