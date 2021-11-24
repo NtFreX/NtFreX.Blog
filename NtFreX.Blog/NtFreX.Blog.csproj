@@ -47,17 +47,15 @@
     <ProjectReference Include="..\NtFreX.Blog.Models\NtFreX.Blog.Models.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include=".ebextensions\ebs.yml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 
   <ItemGroup>
-    <None Update="otel_config.yaml">
+    <None Include=".ebextensions\ebs.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="dev_data.sql">
+    <None Include="otel_config.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="dev_data.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
