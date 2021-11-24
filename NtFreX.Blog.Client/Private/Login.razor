@@ -13,7 +13,7 @@
 <input @bind-value="username" type="text" />
 <input @bind-value="password" type="password" />
 <NtFreX.Blog.Client.Components.Recaptcha @bind-CaptchaResponse="captchaResponse" />
-<button @onclick="@LoginAsync">Login</button>
+<button @onclick="@LoginAsync" disabled="@(string.IsNullOrEmpty(captchaResponse))">Login</button>
 
 
 

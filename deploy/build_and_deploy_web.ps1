@@ -39,11 +39,13 @@ aws elasticbeanstalk create-application-version `
   --description $description `
   --source-bundle S3Bucket=$s3bucket,S3Key=$app/$filename
 
+# https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/command-options-general.html
+
 aws elasticbeanstalk update-environment `
   --region us-east-2 `
   --application-name $app `
   --environment-name $app-$ebsEnv `
-  --solution-stack-name "64bit Amazon Linux 2 v2.2.6 running .NET Core" `
+  --solution-stack-name "64bit Amazon Linux 2 v2.2.8 running .NET Core" `
   --version-label $version `
   --option-settings `
   Namespace=aws:elasticbeanstalk:application:environment,OptionName=ASPNETCORE_ENVIRONMENT,Value=$environment `
@@ -51,6 +53,13 @@ aws elasticbeanstalk update-environment `
   Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexMySqlConfigServer,Value=$mysqlConfigServer `
   Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexMySqlConfigUser,Value=$mysqlConfigUser `
   Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexConfigSecret,Value=$configSecret `
-  Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexConfigPath,Value=$configPath
+  Namespace=aws:elasticbeanstalk:application:environment,OptionName=NtFrexConfigPath,Value=$configPath `
+  Namespace=aws:elasticbeanstalk:cloudwatch:logs,OptionName=StreamLogs,Value=false `
+  Namespace=aws:elasticbeanstalk:environment,OptionName=ServiceRole,Value=aws-elasticbeanstalk-service-role `
+  Namespace=aws:elasticbeanstalk:environment,OptionName=EnvironmentType,Value=SingleInstance `
+  Namespace=aws:autoscaling:launchconfiguration,OptionName=IamInstanceProfile,Value=aws-elasticbeanstalk-ec2-role `
+  Namespace=aws:ec2:instances,OptionName=InstanceTypes,Value=t2.nano `
+  Namespace=aws:elasticbeanstalk:xray,OptionName=XRayEnabled,Value=false `
+  Namespace=aws:elasticbeanstalk:healthreporting:system,OptionName=SystemType,Value=enhanced
 
 echo "deployed application " + $version + " with source " + $filename
