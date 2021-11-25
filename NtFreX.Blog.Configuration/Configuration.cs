@@ -30,6 +30,7 @@ namespace NtFreX.Blog.Configuration
         public const string ActivitySourceName = "ApplicationActivitySource";
         public const bool UsePrometheusScrapingEndpoint = false;
         public const bool EnableLogins = true;
+        public static bool EnableTwoFactorAuth => Environment.IsProduction();
         public const string OtlpLogExporterPath = "http://localhost:4317";
         public const string OtlpMetricsExporterPath = "http://localhost:4317";
         public static string OtlpTraceExporterPath => Environment.IsDevelopment() ? "http://localhost:4317" : "http://localhost:2000";

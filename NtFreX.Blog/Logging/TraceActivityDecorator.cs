@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using NtFreX.Blog.Configuration;
 using System.Diagnostics;
 
 namespace NtFreX.Blog.Logging
@@ -14,7 +15,11 @@ namespace NtFreX.Blog.Logging
 
         public void Decorate(Activity activity)
         {
-            activity.AddTag("machine", System.Environment.MachineName);
+            foreach(var tag in MetricTags.GetDefaultTags())
+            {
+                activity.AddTag(tag.Key, tag.Value);
+            }
+            activity.SetTag("traceId", httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId]);
             activity.AddTag("aspNetCoreTraceId", httpContextAccessor.HttpContext?.TraceIdentifier);
         }
     }

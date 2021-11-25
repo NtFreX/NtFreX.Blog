@@ -75,7 +75,16 @@ namespace NtFreX.Blog
                     {
                         if (rawObject is HttpRequest httpRequest)
                         {
-                            activity.SetBaggage("http.path", httpRequest.Path);
+                            var traceID = Guid.NewGuid().ToString();
+                            httpRequest.HttpContext.Items[HttpContextItemNames.TraceId] = traceID;
+
+                            activity.SetTag("http.path", httpRequest.Path);
+                            activity.SetTag("traceId", traceID);
+                            activity.AddTag("aspNetCoreTraceId", httpRequest.HttpContext.TraceIdentifier);
+                            foreach (var tag in MetricTags.GetDefaultTags())
+                            {
+                                activity.SetTag(tag.Key, tag.Value);
+                            }
                         }
                     }
                 };
@@ -144,6 +153,10 @@ namespace NtFreX.Blog
                 services.AddTransient<IMessageBus, NullMessageBus>();
             }
 
+            if (BlogConfiguration.EnableTwoFactorAuth)
+            {
+                services.AddTransient<ITwoFactorAuthenticator, MessageBusTwoFactorAuthenticator>();
+            }
 
             services.AddAuthorization(options => options.AddPolicy(AuthorizationPolicyNames.OnlyAsAdmin, configure => configure.AddRequirements(new OnlyAsAdminAuthorizationRequirement())));
             services.AddSingleton<IAuthorizationHandler, OnlyAsAdminAuthorizationHandler>();
@@ -198,10 +211,9 @@ namespace NtFreX.Blog
             {
                 using var activity = traceActivityDecorator.StartActivity(name: "NtFreX.Blog.Request");
 
-                httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId] = activity.TraceId;
-
                 var logger = loggerFactory.CreateLogger("NtFreX.Blog.RequestScope");
-                using (logger.BeginScope(activity.TraceId))
+                var traceId = httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId];
+                using (logger.BeginScope(traceId))
                 {
                     logger.LogTrace("Begin request scope");
                     await next();

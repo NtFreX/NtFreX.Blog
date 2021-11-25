@@ -19,6 +19,7 @@ namespace NtFreX.Blog.Cache
         public static string PublishedArticlesByTag(string tag) => $"PublishedArticlesByTag{tag}";
         public static string Image(string name) => $"Image{name}";
         public static string FailedLoginRequests(string username) => $"FailedLoginRequests{username}";
+        public static string TwoFactorSession(string session) => $"TwoFactorSession{session}";
 
         public static TimeSpan TimeToLive = TimeSpan.FromDays(7);
     }
