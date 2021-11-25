@@ -39,6 +39,7 @@ services:
       - 4317:4317   # OTLP gRPC receiver
     depends_on:
       - zipkin
+      - grafana
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -52,4 +53,9 @@ services:
     container_name: 'redis'
     ports:
       - 6022:6379
-     
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: 'grafana'
+    ports:
+      - 3000:3000

@@ -2,8 +2,10 @@
 {
     public class LoginCredentialsDto
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public string Key { get; set; }
+        public string Secret { get; set; }
+        public string Session { get; set; }
+        public LoginCredentialsType Type { get; set; }
         public string CaptchaResponse { get; set; }
     }
 }

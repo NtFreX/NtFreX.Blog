@@ -1,4 +1,4 @@
-﻿@page "/login"
+﻿@page "/twofactorlogin"
 
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
@@ -8,9 +8,8 @@
 @using NtFreX.Blog.Client
 @using Microsoft.AspNetCore.Components.Web.Extensions.Head
 
-<Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - Login")' />
+<Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - 2FA Login")' />
 
-<input @bind-value="username" type="text" />
 <input @bind-value="password" type="password" />
 <NtFreX.Blog.Client.Components.Recaptcha @bind-CaptchaResponse="captchaResponse" />
 <button @onclick="@LoginAsync" disabled="@(string.IsNullOrEmpty(captchaResponse))">Login</button>
@@ -18,16 +17,23 @@
 
 
 @code {
-    private string username;
+    [Parameter] public string user { get; set; }
+
     private string password;
+    private string username;
     private string captchaResponse;
 
-    protected override async Task OnParametersSetAsync()
-        => await localStorage.RemoveItemAsync(JwtTokenHttpHandler.SessionStorageKey);
+    protected override async Task OnParametersSetAsync() 
+    {
+        username = await localStorage.GetItemAsStringAsync(Program.TwoFactorUserTokenName);
+        await localStorage.RemoveItemAsync(Program.TwoFactorUserTokenName);
+    }
 
     private async Task LoginAsync()
     {
-        var response = await Http.PostAsJsonAsync($"/api/login", new LoginCredentialsDto { Key = username, Secret = password, Type = LoginCredentialsType.UsernamePassword, CaptchaResponse = captchaResponse });
+        var session = await localStorage.GetItemAsStringAsync(JwtTokenHttpHandler.SessionStorageKey);
+
+        var response = await Http.PostAsJsonAsync($"/api/login", new LoginCredentialsDto { Key = user, Secret = password, Session = session, Type = LoginCredentialsType.TwoFactor, CaptchaResponse = captchaResponse });
         await JSRuntime.InvokeVoidAsync("googleRecaptchaReset");
 
         if (!response.IsSuccessStatusCode)
@@ -38,14 +44,6 @@
             return;
             
         await localStorage.SetItemAsStringAsync(JwtTokenHttpHandler.SessionStorageKey, responseModel.Value);
-        if (responseModel.Type == LoginResponseType.TwoFactorToken)
-        {
-            await localStorage.SetItemAsStringAsync(Program.TwoFactorUserTokenName, username);
-            navigationManager.NavigateTo($"/twofactorlogin");
-        }
-        else
-        {
-            navigationManager.NavigateTo("/");
-        }
+        navigationManager.NavigateTo("/");
     }
 } 

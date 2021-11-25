@@ -27,6 +27,7 @@ namespace NtFreX.Blog.Web
         private readonly ConfigPreloader configPreloader;
         private readonly ApplicationCache cache;
         private readonly RecaptchaManager recaptchaManager;
+        private readonly ITwoFactorAuthenticator twoFactorAuthenticator;
         private readonly ILogger<LoginController> logger;
         private readonly IMessageBus messageBus;
         private readonly IHttpContextAccessor httpContextAccessor;
@@ -43,6 +44,7 @@ namespace NtFreX.Blog.Web
             ConfigPreloader configPreloader, 
             ApplicationCache cache,
             RecaptchaManager recaptchaManager,
+            ITwoFactorAuthenticator twoFactorAuthenticator,
             ILogger<LoginController> logger, 
             IMessageBus messageBus, 
             IHttpContextAccessor httpContextAccessor)
@@ -51,6 +53,7 @@ namespace NtFreX.Blog.Web
             this.configPreloader = configPreloader;
             this.cache = cache;
             this.recaptchaManager = recaptchaManager;
+            this.twoFactorAuthenticator = twoFactorAuthenticator;
             this.logger = logger;
             this.messageBus = messageBus;
             this.httpContextAccessor = httpContextAccessor;
@@ -63,87 +66,140 @@ namespace NtFreX.Blog.Web
             };
 
         [HttpPost]
-        public async Task<ActionResult> LoginAsync([FromBody] LoginCredentialsDto credentials)
+        public async Task<LoginResponseDto> LoginAsync([FromBody] LoginCredentialsDto credentials)
         {
             using var activity = traceActivityDecorator.StartActivity();
-            activity.AddTag("username", credentials.Username);
+            activity.AddTag("username", credentials.Key);
+            activity.AddTag("session", credentials.Session);
+            activity.AddTag("type", credentials.Type);
 
-            logger.LogTrace($"Trying to login user {credentials.Username}");
+            logger.LogTrace($"Trying to login user {credentials.Key}");
 
-            var token = await RunAllAuthenticationChecksAsync(credentials);
+            var response = await RunAllAuthenticationChecksAsync(credentials);
 
             var tags = new[] {
-                    new KeyValuePair<string, object>("username", credentials.Username)
+                    new KeyValuePair<string, object>("username", credentials.Key),
+                    new KeyValuePair<string, object>("session", credentials.Session),
+                    new KeyValuePair<string, object>("type", credentials.Type)
             }.Concat(MetricTags.GetDefaultTags()).ToArray();
 
             LoginAttemptsCounter.Add(1, tags);
-            LoginSuccessCounter.Add(string.IsNullOrEmpty(token) ? 0 : 1, tags);
-            LoginFailedCounter.Add(string.IsNullOrEmpty(token) ? 1 : 0, tags);
+            LoginSuccessCounter.Add(response.Success ? 1 : 0, tags);
+            LoginFailedCounter.Add(response.Success ? 0 : 1, tags);
 
-            if (!string.IsNullOrEmpty(token)) 
+            if (response.Success && response.Type == LoginResponseType.AuthenticationToken) 
             {
                 var message = new {
-                    User = credentials.Username, 
+                    User = credentials.Key, 
                     RemoteId = httpContextAccessor?.HttpContext?.Connection?.RemoteIpAddress?.ToString()
                 };
                 await messageBus.SendMessageAsync("ntfrex.blog.logins", JsonSerializer.Serialize(message));
             }
 
-            logger.LogInformation($"User {credentials.Username} login was {(token == null ? "not" : "")} succesfull");
-            return Ok(token);
+            logger.LogInformation($"User {credentials.Key} login was {(!response.Success ? "not" : "")} succesfull");
+            return response;
         }
 
-        private async Task<string> RunAllAuthenticationChecksAsync(LoginCredentialsDto credentials)
+        private async Task<LoginResponseDto> RunAllAuthenticationChecksAsync(LoginCredentialsDto credentials)
         {
             if (!await recaptchaManager.ValidateReCaptchaResponseAsync(credentials.CaptchaResponse))
-                return null;
+                return LoginResponseDto.Failed();
 
             if (!BlogConfiguration.EnableLogins)
             {
                 logger.LogDebug($"Logins are disabled");
-                return null;
+                return LoginResponseDto.Failed();
             }
 
-            return await TryAuthenticateUser(credentials);
+            if (credentials.Type == LoginCredentialsType.UsernamePassword)
+            {
+                logger.LogDebug($"authenticating by username and password");
+
+                var canAuthenticate = await TryAuthenticateUser(credentials);
+                if(!canAuthenticate)
+                    return LoginResponseDto.Failed();
+
+                if (BlogConfiguration.EnableTwoFactorAuth)
+                {
+                    logger.LogDebug($"generating and sending two factor token");
+
+                    var session = Guid.NewGuid().ToString();
+                    await twoFactorAuthenticator.SendAndGenerateTwoFactorTokenAsync(session, credentials.Key);
+                    return new LoginResponseDto
+                    {
+                        Type = LoginResponseType.TwoFactorToken,
+                        Success = true,
+                        Value = session
+                    };
+                }
+                else
+                {
+                    logger.LogDebug($"generating and returning auth token");
+
+                    var token = GenerateAuthenticationToken(credentials.Key);
+                    return new LoginResponseDto
+                    {
+                        Type = LoginResponseType.AuthenticationToken,
+                        Success = true,
+                        Value = token
+                    };
+                }
+            }
+            else if (credentials.Type == LoginCredentialsType.TwoFactor)
+            {
+                logger.LogDebug($"authenticating by two factor token");
+
+                if (await twoFactorAuthenticator.TryAuthenticateSecondFactor(credentials.Session, credentials.Key, credentials.Secret))
+                {
+                    logger.LogDebug($"generating and returning auth token");
+
+                    var token = GenerateAuthenticationToken(credentials.Key);
+                    return new LoginResponseDto
+                    {
+                        Type = LoginResponseType.AuthenticationToken,
+                        Success = true,
+                        Value = token
+                    };
+                }
+            }
+            return LoginResponseDto.Failed();
         }
 
-        private async Task<string> TryAuthenticateUser(LoginCredentialsDto credentials)
+        private async Task<bool> TryAuthenticateUser(LoginCredentialsDto credentials)
         {
             using var activity = traceActivityDecorator.StartActivity();
 
-            if (!BlogConfiguration.EnableLogins)
-                return null;
-
-            var secret = configPreloader.Get(ConfigNames.JwtSecret);
             var usersAndPasswords = GetUsersAndPasswords();
-
-            var failedLoginRequests = await cache.TryGetAsync<int>(CacheKeys.FailedLoginRequests(credentials.Username));
+            var failedLoginRequests = await cache.TryGetAsync<int>(CacheKeys.FailedLoginRequests(credentials.Key));
             if (failedLoginRequests.Success && failedLoginRequests.Value >= MaxLoginTries)
             {
-                logger.LogInformation($"User {credentials.Username} has {failedLoginRequests.Value} failed login attempts in the last {PersistLoginAttemptsForXHours} hour(s) and cannot login");
-                return null;
+                logger.LogInformation($"User {credentials.Key} has {failedLoginRequests.Value} failed login attempts in the last {PersistLoginAttemptsForXHours} hour(s) and cannot login");
+                return false;
             }
 
-            if (!usersAndPasswords.ContainsKey(credentials.Username) || usersAndPasswords[credentials.Username] != credentials.Password)
+            if (!usersAndPasswords.ContainsKey(credentials.Key) || usersAndPasswords[credentials.Key] != credentials.Secret)
             {
-                logger.LogInformation($"The given password for the user {credentials.Username} is wrong");
-                await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Username), failedLoginRequests.Value + 1, TimeSpan.FromHours(PersistLoginAttemptsForXHours));
-                return null;
-            }
-            else
-            {
-                await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Username), 0, TimeSpan.FromDays(1));
+                logger.LogInformation($"The given password for the user {credentials.Key} is wrong");
+                await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Key), failedLoginRequests.Value + 1, TimeSpan.FromHours(PersistLoginAttemptsForXHours));
+                return false;
             }
 
+            await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Key), 0, TimeSpan.FromDays(1));
+            return true;            
+        }
+
+        private string GenerateAuthenticationToken(string username)
+        {
             logger.LogTrace("Generating an access token");
 
+            var secret = configPreloader.Get(ConfigNames.JwtSecret);
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = ApplicationAuthenticationHandler.ValidIssuer,
                 Audience = ApplicationAuthenticationHandler.ValidAudience,
                 IssuedAt = DateTime.UtcNow,
-                Subject = new ClaimsIdentity(new[] { new Claim("id", credentials.Username) }),
+                Subject = new ClaimsIdentity(new[] { new Claim("id", username) }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret)), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -153,5 +209,6 @@ namespace NtFreX.Blog.Web
             logger.LogInformation("The login was successful and a token has been generated");
             return token;
         }
+
     }
 }

@@ -24,6 +24,7 @@ dotnet run --project .\NtFreX.Blog\NtFreX.Blog.csproj
  - browse https://localhost:5001/ to view the blog
  - browse http://localhost:9411/ for Zipkin
  - browse http://localhost:9090/ for Prometheus
+ - browse http://localhost:3000/ for Grafana
  - browse http://localhost:15672/ for RabbitMq
  - mysql is running on 127.0.0.1:3306
  - redis is running on 127.0.0.1:6022
@@ -52,14 +53,11 @@ To build the SSL certificate renewal container you can set the variables in the 
  - fix deploy
    - Resources creation
    - command execution
- - test if prod event bridge config works (add iac)
  - more metrics/event counters for opentel (gc, etc)
    - disable opentel in prod
  - init script to replace/set variables
  - integration tests
  - dashboard&alarms
- - deployment pipeline
-   - for web app
  - static code analyzis (dependency security, code security, improvements, etc)
  - server side and client side model validation (componentmodel)
    - action filter
@@ -75,6 +73,7 @@ To build the SSL certificate renewal container you can set the variables in the 
    - for health check lambda
    - cleanup cloudfare cache after release
 
+ - public class GoogleTwoFactorAuthenticator : ITwoFactorAuthenticator https://www.nuget.org/packages/GoogleAuthenticator
  - install newest cert renewal container in lambda after publish
  - client usage analythics
  - randomize cache livetime so not all caches are invalidated at the same time

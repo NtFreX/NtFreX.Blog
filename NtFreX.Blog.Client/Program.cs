@@ -10,6 +10,8 @@ namespace NtFreX.Blog.Client
 {
     public class Program
     {
+        public static string TwoFactorUserTokenName = "usertoken";
+
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);

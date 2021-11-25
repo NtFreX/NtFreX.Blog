@@ -17,7 +17,7 @@ exporters:
 
   # Export to zipkin
   zipkin:
-    endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
+    endpoint: "http://zipkin:9411/api/v2/spans"
     format: proto
 
   # Export to a file
