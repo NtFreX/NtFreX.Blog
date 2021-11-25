@@ -25,7 +25,7 @@
 
     protected override async Task OnParametersSetAsync() 
     {
-        username = await localStorage.GetItemAsStringAsync(JwtTokenHttpHandler.TwoFactorUserTokenName);
+        username = await localStorage.GetItemAsStringAsync(Program.TwoFactorUserTokenName);
         await localStorage.RemoveItemAsync(Program.TwoFactorUserTokenName);
     }
 
