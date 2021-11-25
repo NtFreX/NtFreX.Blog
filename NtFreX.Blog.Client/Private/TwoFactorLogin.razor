@@ -10,16 +10,14 @@
 
 <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - 2FA Login")' />
 
-<input @bind-value="password" type="password" />
+<input @bind-value="secondFactor" type="text" />
 <NtFreX.Blog.Client.Components.Recaptcha @bind-CaptchaResponse="captchaResponse" />
 <button @onclick="@LoginAsync" disabled="@(string.IsNullOrEmpty(captchaResponse))">Login</button>
 
 
 
 @code {
-    [Parameter] public string user { get; set; }
-
-    private string password;
+    private string secondFactor;
     private string username;
     private string captchaResponse;
 
@@ -33,7 +31,7 @@
     {
         var session = await localStorage.GetItemAsStringAsync(JwtTokenHttpHandler.SessionStorageKey);
 
-        var response = await Http.PostAsJsonAsync($"/api/login", new LoginCredentialsDto { Key = user, Secret = password, Session = session, Type = LoginCredentialsType.TwoFactor, CaptchaResponse = captchaResponse });
+        var response = await Http.PostAsJsonAsync($"/api/login", new LoginCredentialsDto { Key = username, Secret = secondFactor, Session = session, Type = LoginCredentialsType.TwoFactor, CaptchaResponse = captchaResponse });
         await JSRuntime.InvokeVoidAsync("googleRecaptchaReset");
 
         if (!response.IsSuccessStatusCode)
