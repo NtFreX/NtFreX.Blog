@@ -70,7 +70,7 @@ else
         try
         {
             articles = null;
-            decodedTag = string.IsNullOrEmpty(decodedTag) ? null : WebHelper.Base64UrlDecode(Tag, Encoding.UTF8);
+            decodedTag = string.IsNullOrEmpty(Tag) ? null : WebHelper.Base64UrlDecode(Tag, Encoding.UTF8);
             title = Configuration.BlogConfiguration.BlogTitle + (!string.IsNullOrEmpty(decodedTag) ? $" - Articles tagged with '{decodedTag}'" : string.Empty);
 
             await Task.WhenAll(new Task[] {

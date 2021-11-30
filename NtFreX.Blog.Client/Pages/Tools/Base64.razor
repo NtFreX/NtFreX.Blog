@@ -107,7 +107,6 @@
         try
         {
             var encoding = Encoding.GetEncoding(TextEncoding);
-            Console.WriteLine(encoding);
             base64Value = value;
             rawValue = UrlEncodedText ? WebHelper.Base64UrlDecode(value, encoding) : encoding.GetString(Convert.FromBase64String(value));
             InvalidBase64Value = false;
