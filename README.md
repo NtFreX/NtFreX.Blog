@@ -74,6 +74,7 @@ To build the SSL certificate renewal container you can set the variables in the 
    - for health check lambda
    - cleanup cloudfare cache after release
 
+ - canary tests (selenium)
  - public class GoogleTwoFactorAuthenticator : ITwoFactorAuthenticator https://www.nuget.org/packages/GoogleAuthenticator
  - install newest cert renewal container in lambda after publish
  - client usage analythics
