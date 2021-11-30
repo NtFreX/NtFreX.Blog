@@ -15,7 +15,7 @@ $description = $app + $version
 
 dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime linux-x64 --configuration Release
 
-Copy-Item ./NtFreX.Blog/bin/Release/net5.0/linux-x64/publish ./publish -Recurse
+Copy-Item ./NtFreX.Blog/bin/Release/net6.0/linux-x64/publish ./publish -Recurse
 
 tar -C ./publish -vacf publish.zip .
 
