@@ -61,6 +61,7 @@ To build the SSL certificate renewal container you can set the variables in the 
  - static code analyzis (dependency security, code security, improvements, etc)
  - server side and client side model validation (componentmodel)
    - action filter
+ - polly for razor client retry strat
   
  - host own acme instance in cert renewal container
  - setup prod infrastructure if not exits in pipeline

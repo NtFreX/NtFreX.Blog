@@ -30,7 +30,7 @@ namespace NtFreX.Blog
         /// <param name="builder"></param>
         protected override void Init(IWebHostBuilder builder)
         {
-            var task = Program.InitializeAppAsync();
+            var task = Program.LoadConfigurationAsync();
             task.RunSynchronously();
             Program.ConfigureWebHostBuilder(builder, task.Result.Configuration, task.Result.ConfigProvider, task.Result.ConfigLoader, task.Result.ReddisConnectionString);
         }

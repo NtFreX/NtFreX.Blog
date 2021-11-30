@@ -12,10 +12,10 @@ namespace NtFreX.Blog.Data.EfCore
 {
     public class RelationalDbImageRepository : RelationalDbRepository<Models.ImageModel, ImageModel>, IImageRepository
     {
-        private readonly MySqlDatabaseConnectionFactory connectionFactory;
+        private readonly MySqlConnectionFactory connectionFactory;
         private readonly IMapper mapper;
 
-        public RelationalDbImageRepository(MySqlDatabaseConnectionFactory connectionFactory, IMapper mapper)
+        public RelationalDbImageRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
             : base(connectionFactory, mapper)
         {
             this.connectionFactory = connectionFactory;

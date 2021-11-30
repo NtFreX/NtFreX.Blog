@@ -7,7 +7,7 @@ namespace NtFreX.Blog.Data.EfCore
 {
     public class RelationalDbArticleRepository : RelationalDbRepository<Models.ArticleModel, ArticleModel>, IArticleRepository
     {
-        public RelationalDbArticleRepository(MySqlDatabaseConnectionFactory connectionFactory, IMapper mapper)
+        public RelationalDbArticleRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
             : base(connectionFactory, mapper)
         { }
 

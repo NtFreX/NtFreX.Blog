@@ -11,14 +11,17 @@ namespace NtFreX.Blog.Data.MongoDb
         where TDbModel : class, IMongoDbModel
     {
         protected readonly IMongoCollection<TDbModel> Collection;
+        protected readonly MongoConnectionFactory Database;
 
         private readonly IMapper mapper;
 
-        public MongoDbRepository(IMongoCollection<TDbModel> collection, IMapper mapper)
+        public MongoDbRepository(MongoConnectionFactory database, IMongoCollection<TDbModel> collection, IMapper mapper)
         {
+            Database = database;
             this.Collection = collection;
             this.mapper = mapper;
         }
+
 
         public async Task<IReadOnlyList<TModel>> FindAsync()
         {
@@ -38,7 +41,7 @@ namespace NtFreX.Blog.Data.MongoDb
             var dbModel = mapper.Map<TDbModel>(model);
             dbModel.Id = new ObjectId(Guid.NewGuid().ToString());
 
-            await Collection.InsertOneAsync(dbModel);
+            await Collection.InsertOneAsync(Database.Session, dbModel);
             return dbModel.Id.ToString();
         }
 

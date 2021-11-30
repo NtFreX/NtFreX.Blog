@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>15823f2e-239d-4776-b0cc-827d2634375f</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
@@ -15,15 +15,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="AWSSDK.EventBridge" Version="3.7.4.47" />
-	<PackageReference Include="AWSSDK.SQS" Version="3.7.1.45" />
-	<PackageReference Include="NLog.Web.AspNetCore" Version="4.9.*" />
+	<PackageReference Include="AWSSDK.EventBridge" Version="3.7.4.48" />
+	<PackageReference Include="AWSSDK.SQS" Version="3.7.2" />
+	<PackageReference Include="NLog.Web.AspNetCore" Version="4.14.0" />
 	<PackageReference Include="NLog" Version="4.7.*" />
-    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="6.0.3" />
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="7.0.0" />
     <PackageReference Include="Firewall" Version="3.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="6.0.0" />
     <PackageReference Include="OpenTelemetry.Contrib.Extensions.AWSXRay" Version="1.1.0" />
     <PackageReference Include="OpenTelemetry.Contrib.Instrumentation.AWS" Version="1.0.1" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.1.0" />

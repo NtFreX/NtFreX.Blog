@@ -165,7 +165,17 @@ namespace NtFreX.Blog
             services.AddAuthentication(ApplicationAuthenticationHandler.AuthenticationScheme)
                     .AddScheme<ApplicationAuthenticationOptions, ApplicationAuthenticationHandler>(ApplicationAuthenticationHandler.AuthenticationScheme, x => { });
 
-            services.AddControllersWithViews();
+            services.AddControllersWithViews(options =>
+            {
+                // currently there are two write actions which need to be transactional
+                //  - updating db
+                //  - publishing to event bus
+                // the architecture is so that the publish happens last as it cannot be rolled back
+                // in case more write actions are added they either need to support rollbacks/journaling
+                // or the api needs to be written in an idempotent fashion
+                options.Filters.Add<TransactionActionFilter>();
+            });
+
             services.AddRazorPages(options =>
             {
                 options.Conventions.AuthorizeFolder("/Private", AuthorizationPolicyNames.OnlyAsAdmin);
@@ -185,41 +195,29 @@ namespace NtFreX.Blog
 
             if (BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
             {
-                services.AddTransient<MySqlDatabaseConnectionFactory>();
-                services.AddTransient<ICommentRepository, RelationalDbCommentRepository>();
-                services.AddTransient<IImageRepository, RelationalDbImageRepository>();
-                services.AddTransient<IArticleRepository, RelationalDbArticleRepository>();
-                services.AddTransient<ITagRepository, RelationalDbTagRepository>();
-                services.AddTransient<IVisitorRepository, RelationalDbVisitorRepository>();
+                services.AddScoped<MySqlConnectionFactory>();
+                services.AddScoped<IConnectionFactory, MySqlConnectionFactory>();
+                services.AddScoped<ICommentRepository, RelationalDbCommentRepository>();
+                services.AddScoped<IImageRepository, RelationalDbImageRepository>();
+                services.AddScoped<IArticleRepository, RelationalDbArticleRepository>();
+                services.AddScoped<ITagRepository, RelationalDbTagRepository>();
+                services.AddScoped<IVisitorRepository, RelationalDbVisitorRepository>();
             }
             else if (BlogConfiguration.PersistenceLayer == PersistenceLayerType.MongoDb)
             {
-                services.AddTransient<MongoDatabase>();
-                services.AddTransient<ICommentRepository, MongoDbCommentRepository>();
-                services.AddTransient<IImageRepository, MongoDbImageRepository>();
-                services.AddTransient<IArticleRepository, MongoDbArticleRepository>();
-                services.AddTransient<ITagRepository, MongoDbTagRepository>();
-                services.AddTransient<IVisitorRepository, MongoDbVisitorRepository>();
+                services.AddScoped<MongoConnectionFactory>();
+                services.AddScoped<IConnectionFactory, MongoConnectionFactory>();
+                services.AddScoped<ICommentRepository, MongoDbCommentRepository>();
+                services.AddScoped<IImageRepository, MongoDbImageRepository>();
+                services.AddScoped<IArticleRepository, MongoDbArticleRepository>();
+                services.AddScoped<ITagRepository, MongoDbTagRepository>();
+                services.AddScoped<IVisitorRepository, MongoDbVisitorRepository>();
             }
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, TraceActivityDecorator traceActivityDecorator, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
-            ServerCertificateSelector.Instance.SetLoggerFactory(loggerFactory);
-
-            app.Use(async (context, next) =>
-            {
-                using var activity = traceActivityDecorator.StartActivity(name: "NtFreX.Blog.Request");
-
-                var logger = loggerFactory.CreateLogger("NtFreX.Blog.RequestScope");
-                var traceId = httpContextAccessor.HttpContext.Items[HttpContextItemNames.TraceId];
-                using (logger.BeginScope(traceId))
-                {
-                    logger.LogTrace("Begin request scope");
-                    await next();
-                    logger.LogTrace("End request scope");
-                }
-            });
+            app.UseMiddleware<ActivityTracingMiddleware>();
 
             if (env.IsProduction())
             {
@@ -262,17 +260,7 @@ namespace NtFreX.Blog
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseResponseCaching();
-            app.Use(async (context, next) =>
-            {
-                context.Response.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
-                {
-                    Public = true,
-                    MaxAge = env.IsDevelopment() ? TimeSpan.FromSeconds(30) : TimeSpan.FromDays(1)
-                };
-                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] = new [] { "Accept-Encoding" };
-
-                await next();
-            });
+            app.UseMiddleware<ResponseHeaderMiddleware>();
 
             if (BlogConfiguration.UsePrometheusScrapingEndpoint)
             {
@@ -285,11 +273,15 @@ namespace NtFreX.Blog
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
+                endpoints.MapFallbackToPage("/Error", "/Error");
+                endpoints.MapFallbackToPage("/NotFound", "/NotFound");
             });
 
+            ServerCertificateSelector.Instance.SetLoggerFactory(loggerFactory);
             if (env.IsDevelopment() && BlogConfiguration.PersistenceLayer == PersistenceLayerType.MySql)
             {
-                var connectionFactory = serviceProvider.GetRequiredService<MySqlDatabaseConnectionFactory>();
+                using var scope = serviceProvider.CreateScope();
+                var connectionFactory = scope.ServiceProvider.GetRequiredService<MySqlConnectionFactory>();
                 connectionFactory.EnsureTablesExists();
 
                 try
