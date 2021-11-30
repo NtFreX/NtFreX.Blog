@@ -34,7 +34,7 @@ namespace NtFreX.Blog
             };
         }
 
-        public static async Task<(IConfigurationRoot Configuration, IConfigProvider ConfigProvider, ConfigPreloader ConfigLoader, string ReddisConnectionString)> InitializeAppAsync()
+        public static async Task<(IConfigurationRoot Configuration, IConfigProvider ConfigProvider, ConfigPreloader ConfigLoader, string ReddisConnectionString)> LoadConfigurationAsync()
         {
             IConfigProvider configProvider = GetConfigProvider();
             var configLoader = await ConfigPreloader.LoadAsync(configProvider);
@@ -91,7 +91,7 @@ namespace NtFreX.Blog
                 logger.Debug("init main");
                 logger.Debug($"AspNetCoreEnvironment={Configuration.Environment.AspNetCoreEnvironment}");
 
-                var app = await InitializeAppAsync();
+                var app = await LoadConfigurationAsync();
                 var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);
                 await host.RunAsync();
             }

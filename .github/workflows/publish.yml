@@ -1,4 +1,4 @@
-name: Publish to nuget
+name: Publish to AWS
 on:
   push:
     branches:
@@ -27,7 +27,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.403
+        dotnet-version: 6.0.x
     
     - name: Deploy web app
       env:

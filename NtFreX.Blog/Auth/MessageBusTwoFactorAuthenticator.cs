@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using NtFreX.Blog.Cache;
+using NtFreX.Blog.Core;
 using NtFreX.Blog.Messaging;
 using System;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -29,7 +28,7 @@ namespace NtFreX.Blog.Auth
 
         public async Task SendAndGenerateTwoFactorTokenAsync(string sessionToken, string username)
         {
-            var twoFactor = new string(Enumerable.Repeat(0, TwoFactorLength).Select(x => RandomNumberChar()).ToArray());
+            var twoFactor = RandomExtensions.GetRandomNumberString(TwoFactorLength);
 
             await cache.SetAsync(CacheKeys.TwoFactorSession(sessionToken), new TwoFactorSession { TwoFactor = twoFactor, Username = username }, TimeSpan.FromMinutes(TwoFactorLivetimeInMin));
             await messageBus.SendMessageAsync(MessageBusName, JsonSerializer.Serialize(new { Value = twoFactor }));
@@ -58,15 +57,8 @@ namespace NtFreX.Blog.Auth
                 return false;
             }
 
+            await cache.RemoveSaveAsync(CacheKeys.TwoFactorSession(sessionToken));
             return true;
-        }
-
-        private char RandomNumberChar()
-        {
-            using var rg = new RNGCryptoServiceProvider();
-            byte[] rno = new byte[5];
-            rg.GetBytes(rno);
-            return new Random(BitConverter.ToInt32(rno, 0)).Next(0, 10).ToString()[0];
         }
 
         private class TwoFactorSession

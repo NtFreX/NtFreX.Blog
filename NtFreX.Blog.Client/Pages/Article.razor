@@ -119,16 +119,23 @@ else
 
     private async Task LoadDataAsync()
     {
-        await Task.WhenAll(new Task[] {
-            new Func<Task>(async () => topArticles = await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/topTreeWithVisitorCount/{Id}")).Invoke(),
-            new Func<Task>(async () => article = await Http.GetFromJsonAsync<ArticleDto>($"/api/article/{Id}")).Invoke(),
-            new Func<Task>(async () => comments = await Http.GetFromJsonAsync<CommentDto[]>($"/api/comment/byArticleId/{Id}")).Invoke(),
-            new Func<Task>(async () => tags = await Http.GetFromJsonAsync<TagDto[]>($"/api/tag/byArticleId/{Id}")).Invoke(),
-            new Func<Task>(async () => allTags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag")).Invoke(),
-            new Func<Task>(async () => isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"))).Invoke(),
-            new Func<Task>(async () => await Http.GetAsync($"/api/article/visit/{Id}")).Invoke(),
-            new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
-        });
+        try
+        {
+            await Task.WhenAll(new Task[] {
+                new Func<Task>(async () => topArticles = await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/topTreeWithVisitorCount/{Id}")).Invoke(),
+                new Func<Task>(async () => article = await Http.GetFromJsonAsync<ArticleDto>($"/api/article/{Id}")).Invoke(),
+                new Func<Task>(async () => comments = await Http.GetFromJsonAsync<CommentDto[]>($"/api/comment/byArticleId/{Id}")).Invoke(),
+                new Func<Task>(async () => tags = await Http.GetFromJsonAsync<TagDto[]>($"/api/tag/byArticleId/{Id}")).Invoke(),
+                new Func<Task>(async () => allTags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag")).Invoke(),
+                new Func<Task>(async () => isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"))).Invoke(),
+                new Func<Task>(async () => await Http.GetAsync($"/api/article/visit/{Id}")).Invoke(),
+                new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
+            });
+        }
+        catch
+        {
+            await JSRuntime.InvokeVoidAsync("navigate", new[] { "/NotFound" });
+        }
     }
 
     private async Task InsertCommentAsync()

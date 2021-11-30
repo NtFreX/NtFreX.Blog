@@ -6,11 +6,12 @@
 
 @inject HttpClient Http
 @inject NavigationManager navigationManager
+@inject IJSRuntime JSRuntime
 
-<Title Value="@(Title)" />
+<Title Value="@(title)" />
 @if (!string.IsNullOrEmpty(Tag))
 {
-    <Meta name="description" content=@($"Articles tagged with '{WebHelper.Base64UrlDecode(Tag, Encoding.UTF8)}'.") />
+    <Meta name="description" content=@($"Articles tagged with '{decodedTag}'.") />
 }
 
 @if (isAdmin)
@@ -25,7 +26,7 @@
 
         @if (!string.IsNullOrEmpty(Tag))
         {
-            <h6 style="margin-top: 8px; font-style: italic; color: gray;">Displaying articles with the label '@(WebHelper.Base64UrlDecode(Tag, Encoding.UTF8))'</h6>
+            <h6 style="margin-top: 8px; font-style: italic; color: gray;">Displaying articles with the label '@(decodedTag)'</h6>
             <NavLink href="" Match="NavLinkMatch.All">
                 <span>Clear filter</span>
             </NavLink>
@@ -57,25 +58,35 @@ else
     private IReadOnlyList<ArticleWithVisitsDto> articles;
     private TagDto[] tags;
     private bool isAdmin;
+    private string decodedTag;
+    private string title;
 
-    public string Title => Configuration.BlogConfiguration.BlogTitle + (!string.IsNullOrEmpty(Tag) ? $" - Articles tagged with '{WebHelper.Base64UrlDecode(Tag, Encoding.UTF8)}'" : string.Empty);
     [Parameter] public string Tag { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
 
-        articles = null;
+        try
+        {
+            articles = null;
+            decodedTag = string.IsNullOrEmpty(Tag) ? null : WebHelper.Base64UrlDecode(Tag, Encoding.UTF8);
+            title = Configuration.BlogConfiguration.BlogTitle + (!string.IsNullOrEmpty(decodedTag) ? $" - Articles tagged with '{decodedTag}'" : string.Empty);
 
-        await Task.WhenAll(new Task[] {
-            new Func<Task>(async () => isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"))).Invoke(),
-            new Func<Task>(async () =>
-                articles = string.IsNullOrEmpty(Tag)
-                    ? await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>("/api/article/withVisitorCount")
-                    : await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/byTagWithVisitorCount/{Tag}")).Invoke(),
-            new Func<Task>(async () => tags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag")).Invoke(),
-            new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
-    });
+            await Task.WhenAll(new Task[] {
+                new Func<Task>(async () => isAdmin = bool.Parse(await Http.GetStringAsync("/api/authorization/isAdmin"))).Invoke(),
+                new Func<Task>(async () =>
+                    articles = string.IsNullOrEmpty(Tag)
+                        ? await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>("/api/article/withVisitorCount")
+                        : await Http.GetFromJsonAsync<IReadOnlyList<ArticleWithVisitsDto>>($"/api/article/byTagWithVisitorCount/{Tag}")).Invoke(),
+                new Func<Task>(async () => tags = await Http.GetFromJsonAsync<TagDto[]>("/api/tag")).Invoke(),
+                new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
+            });
+        }
+        catch
+        {
+            await JSRuntime.InvokeVoidAsync("navigate", new[] { "/Error" });
+        }
     }
 
     public async Task CreateArticleAsync()
