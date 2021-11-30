@@ -13,10 +13,10 @@ namespace NtFreX.Blog.Data.EfCore
     public class RelationalDbRepository<TDbModel, TModel> : IRepository<TModel>
         where TDbModel : class, IEfCoreDbModel
     {
-        private readonly MySqlDatabaseConnectionFactory connectionFactory;
+        private readonly MySqlConnectionFactory connectionFactory;
         private readonly IMapper mapper;
 
-        public RelationalDbRepository(MySqlDatabaseConnectionFactory connectionFactory, IMapper mapper)
+        public RelationalDbRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
         {
             this.connectionFactory = connectionFactory;
             this.mapper = mapper;
@@ -50,7 +50,7 @@ namespace NtFreX.Blog.Data.EfCore
                 var dbModel = mapper.Map<TDbModel>(model);
                 dbModel.Id = Guid.NewGuid().ToString();
 
-                await connectionFactory.Connection.InsertAsync(dbModel);
+                await connectionFactory.Connection.InsertAsync(dbModel, connectionFactory.Transaction);
                 return dbModel.Id.ToString();
             }
         }
@@ -61,7 +61,7 @@ namespace NtFreX.Blog.Data.EfCore
             using (var activity = activitySource.StartActivity($"{nameof(RelationalDbRepository<TDbModel, TModel>)}.{nameof(UpdateAsync)}", ActivityKind.Server))
             {
                 var dbModel = mapper.Map<TDbModel>(model);
-                await connectionFactory.Connection.UpdateAsync(dbModel);
+                await connectionFactory.Connection.UpdateAsync(dbModel, connectionFactory.Transaction);
             }
         }
 

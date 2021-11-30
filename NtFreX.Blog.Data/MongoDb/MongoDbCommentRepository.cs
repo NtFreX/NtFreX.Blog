@@ -10,8 +10,8 @@ namespace NtFreX.Blog.Data.MongoDb
     {
         private readonly IMapper mapper;
 
-        public MongoDbCommentRepository(MongoDatabase database, IMapper mapper)
-            : base(database.Blog.GetCollection<Models.CommentModel>("comment"), mapper)
+        public MongoDbCommentRepository(MongoConnectionFactory database, IMapper mapper)
+            : base(database, database.Blog.GetCollection<Models.CommentModel>("comment"), mapper)
         {
             this.mapper = mapper;
         }

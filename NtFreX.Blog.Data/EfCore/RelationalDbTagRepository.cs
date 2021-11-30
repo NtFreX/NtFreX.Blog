@@ -15,10 +15,10 @@ namespace NtFreX.Blog.Data.EfCore
 {
     public class RelationalDbTagRepository : RelationalDbRepository<Models.TagModel, TagModel>, ITagRepository
     {
-        private readonly MySqlDatabaseConnectionFactory connectionFactory;
+        private readonly MySqlConnectionFactory connectionFactory;
         private readonly IMapper mapper;
 
-        public RelationalDbTagRepository(MySqlDatabaseConnectionFactory connectionFactory, IMapper mapper)
+        public RelationalDbTagRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
             : base(connectionFactory, mapper)
         {
             this.connectionFactory = connectionFactory;
@@ -42,12 +42,12 @@ namespace NtFreX.Blog.Data.EfCore
             {
                 foreach (var tag in await FindByArticleIdAsync(articleId))
                 {
-                    await connectionFactory.Connection.DeleteAsync(mapper.Map<Models.TagModel>(tag));
+                    await connectionFactory.Connection.DeleteAsync(mapper.Map<Models.TagModel>(tag), connectionFactory.Transaction);
                 }
 
                 foreach (var tag in newTags)
                 {
-                    await connectionFactory.Connection.InsertAsync(new Models.TagModel { ArticleId = articleId, Id = Guid.NewGuid().ToString(), Name = tag });
+                    await connectionFactory.Connection.InsertAsync(new Models.TagModel { ArticleId = articleId, Id = Guid.NewGuid().ToString(), Name = tag }, connectionFactory.Transaction);
                 }
             }
         }

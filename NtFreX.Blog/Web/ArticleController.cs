@@ -54,12 +54,22 @@ namespace NtFreX.Blog.Web
             => await articleService.GetTopTreeWithVisitorCountAsync(excludeId);
 
         [HttpGet("byTag/{tag}")]
-        public async Task<IReadOnlyList<ArticleDto>> GetArticlesByTagAsync(string tag)
-            => await articleService.GetArticlesByTagAsync(WebHelper.Base64UrlDecode(tag, Encoding.UTF8), authorizationManager.IsAdmin());
+        public async Task<IActionResult> GetArticlesByTagAsync(string tag)
+        {
+            if (!TryDecodeTag(tag, out var decodedTag))
+                return BadRequest();
+
+            return Ok(await articleService.GetArticlesByTagAsync(decodedTag, authorizationManager.IsAdmin()));
+        }
 
         [HttpGet("byTagWithVisitorCount/{tag}")]
-        public async Task<IReadOnlyList<ArticleWithVisitsDto>> GetAllArticlesWithVisitorCountByTagAsync(string tag)
-            => await articleService.GetAllArticlesByTagWithVisitorCountAsync(WebHelper.Base64UrlDecode(tag, Encoding.UTF8), authorizationManager.IsAdmin());
+        public async Task<IActionResult> GetAllArticlesWithVisitorCountByTagAsync(string tag)
+        {
+            if (!TryDecodeTag(tag, out var decodedTag))
+                return BadRequest();
+
+            return Ok(await articleService.GetAllArticlesByTagWithVisitorCountAsync(decodedTag, authorizationManager.IsAdmin()));
+        }
         
         [HttpGet]
         public async Task<IReadOnlyList<ArticleDto>> GetAllArticlesAsync()
@@ -70,31 +80,49 @@ namespace NtFreX.Blog.Web
             => await articleService.GetAllArticlesWithVisitorCountAsync(authorizationManager.IsAdmin());
 
         [HttpGet("{articleId}")]
-        public async Task<ArticleDto> GetArticleByIdAsync(string articleId)
+        public async Task<IActionResult> GetArticleByIdAsync(string articleId)
         {
             var item = await articleService.GetArticleByIdAsync(articleId);
-            if (!item.IsPublished() && !authorizationManager.IsAdmin())
-                throw new UnauthorizedAccessException();
+            if (item == null)
+                return NotFound();
 
-            return item;
+            if (!item.IsPublished() && !authorizationManager.IsAdmin())
+                return Unauthorized();
+
+            return Ok(item);
         }
 
         [HttpPost]
-        public async Task<string> CreateArticleAsync()
+        public async Task<IActionResult> CreateArticleAsync()
         {
             if (!authorizationManager.IsAdmin())
-                throw new UnauthorizedAccessException();
+                return Unauthorized();
 
-            return await articleService.CreateArticleAsync();
+            return Ok(await articleService.CreateArticleAsync());
         }
 
         [HttpPut]
-        public async Task SaveArticleAsync(SaveArticleDto model)
+        public async Task<IActionResult> SaveArticleAsync(SaveArticleDto model)
         {
             if (!authorizationManager.IsAdmin())
-                throw new UnauthorizedAccessException();
+                return Unauthorized();
 
-            await articleService.SaveArticleAsync(model); 
+            await articleService.SaveArticleAsync(model);
+            return Ok();
+        }
+
+        private bool TryDecodeTag(string tag, out string decodedTag) 
+        {
+            try
+            {
+                decodedTag = WebHelper.Base64UrlDecode(tag, Encoding.UTF8);
+                return true;
+            }
+            catch
+            {
+                decodedTag = null;
+                return false;
+            }
         }
     }
 }

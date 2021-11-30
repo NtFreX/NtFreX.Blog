@@ -9,8 +9,8 @@ namespace NtFreX.Blog.Data.MongoDb
     {
         private readonly IMapper mapper;
 
-        public MongoDbImageRepository(MongoDatabase database, IMapper mapper)
-            : base(database.Blog.GetCollection<Models.ImageModel>("image"), mapper)
+        public MongoDbImageRepository(MongoConnectionFactory database, IMapper mapper)
+            : base(database, database.Blog.GetCollection<Models.ImageModel>("image"), mapper)
         {
             this.mapper = mapper;
         }
@@ -23,7 +23,7 @@ namespace NtFreX.Blog.Data.MongoDb
 
         public override async Task UpdateAsync(ImageModel model)
         {
-            await Collection.FindOneAndDeleteAsync(Builders<Models.ImageModel>.Filter.Eq(x => x.Name, model.Name));
+            await Collection.FindOneAndDeleteAsync(Database.Session, Builders<Models.ImageModel>.Filter.Eq(x => x.Name, model.Name));
             await InsertAsync(model);
         }
     }

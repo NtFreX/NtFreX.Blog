@@ -12,8 +12,8 @@ namespace NtFreX.Blog.Data.MongoDb
     {
         private readonly IMapper mapper;
 
-        public MongoDbTagRepository(MongoDatabase database, IMapper mapper)
-            : base(database.Blog.GetCollection<Models.TagModel>("tag"), mapper)
+        public MongoDbTagRepository(MongoConnectionFactory database, IMapper mapper)
+            : base(database, database.Blog.GetCollection<Models.TagModel>("tag"), mapper)
         {
             this.mapper = mapper;
         }
@@ -29,11 +29,11 @@ namespace NtFreX.Blog.Data.MongoDb
 
         public async Task UpdateTagsForArticle(string[] newTags, string articleId)
         {
-            await Collection.DeleteManyAsync(Builders<Models.TagModel>.Filter.Eq(d => d.ArticleId, articleId));
+            await Collection.DeleteManyAsync(Database.Session, Builders<Models.TagModel>.Filter.Eq(d => d.ArticleId, articleId));
 
             if (newTags.Any())
             {
-                await Collection.InsertManyAsync(newTags.Select(x => new Models.TagModel { ArticleId = articleId, Name = x }));
+                await Collection.InsertManyAsync(Database.Session, newTags.Select(x => new Models.TagModel { ArticleId = articleId, Name = x }));
             }
         }
     }

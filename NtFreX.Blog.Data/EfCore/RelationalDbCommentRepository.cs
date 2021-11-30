@@ -14,10 +14,10 @@ namespace NtFreX.Blog.Data.EfCore
 {
     public class RelationalDbCommentRepository : RelationalDbRepository<Models.CommentModel, CommentModel>, ICommentRepository
     {
-        private readonly MySqlDatabaseConnectionFactory connectionFactory;
+        private readonly MySqlConnectionFactory connectionFactory;
         private readonly IMapper mapper;
 
-        public RelationalDbCommentRepository(MySqlDatabaseConnectionFactory connectionFactory, IMapper mapper)
+        public RelationalDbCommentRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
             : base(connectionFactory, mapper)
         {
             this.connectionFactory = connectionFactory;

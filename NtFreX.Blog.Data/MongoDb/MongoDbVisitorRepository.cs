@@ -12,8 +12,8 @@ namespace NtFreX.Blog.Data.MongoDb
     {
         private readonly IMapper mapper;
 
-        public MongoDbVisitorRepository(MongoDatabase database, IMapper mapper)
-            : base(database.Blog.GetCollection<Models.VisitorModel>("visitor"), mapper)
+        public MongoDbVisitorRepository(MongoConnectionFactory database, IMapper mapper)
+            : base(database, database.Blog.GetCollection<Models.VisitorModel>("visitor"), mapper)
         {
             this.mapper = mapper;
         }
