@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NtFreX.Blog.Auth;
@@ -23,14 +24,30 @@ namespace NtFreX.Blog.Web
             this.cache = cache;
         }
 
+
+        [HttpGet, Route("names")]
+        public async Task<ActionResult> GetNamesAsync()
+        {
+            if (!authorizationManager.IsAdmin())
+                return Unauthorized();
+
+            var images = await cache.CacheAsync(
+                CacheKeys.AllImages.Name,
+                CacheKeys.AllImages.TimeToLive,
+                () => imageRepository.FindAsync());
+
+            return Ok(images.Select(x => x.Name).ToList());
+        }
+
         [HttpGet, Route("{name}")]
         [ResponseCache(Duration = 60 * 60 * 24)]
         public async Task<ActionResult> GetAsync(string name)
         {
+            var cacheKey = CacheKeys.Image;
             var image = await cache.CacheAsync(
-                CacheKeys.Image(name), 
-                CacheKeys.TimeToLive, 
-                () => imageRepository.FindByName(name));
+                cacheKey.Name(name),
+                cacheKey.TimeToLive, 
+                () => imageRepository.FindByNameAsync(name));
 
             var bytes = Convert.FromBase64String(image.Data);
             var stream = new MemoryStream(bytes);
@@ -56,7 +73,8 @@ namespace NtFreX.Blog.Web
             };
 
             await imageRepository.InsertOrUpdate(image);
-            await cache.RemoveSaveAsync(CacheKeys.Image(name));
+            await cache.RemoveSaveAsync(CacheKeys.Image.Name(name));
+            await cache.RemoveSaveAsync(CacheKeys.AllImages.Name);
             return Ok();
         }
     }

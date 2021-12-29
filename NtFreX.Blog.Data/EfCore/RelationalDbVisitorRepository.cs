@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -16,23 +15,22 @@ namespace NtFreX.Blog.Data.EfCore
     {
         private readonly MySqlConnectionFactory connectionFactory;
         private readonly IMapper mapper;
+        private readonly ApplicationContextActivityDecorator applicationContextActivityDecorator;
 
-        public RelationalDbVisitorRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
-            : base(connectionFactory, mapper)
+        public RelationalDbVisitorRepository(MySqlConnectionFactory connectionFactory, IMapper mapper, ApplicationContextActivityDecorator applicationContextActivityDecorator)
+            : base(connectionFactory, mapper, applicationContextActivityDecorator)
         {
             this.connectionFactory = connectionFactory;
             this.mapper = mapper;
+            this.applicationContextActivityDecorator = applicationContextActivityDecorator;
         }
 
         public async Task<long> CountByArticleIdAsync(string id)
         {
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbVisitorRepository)}.{nameof(CountByArticleIdAsync)}", ActivityKind.Server))
-            {
-                var visitors = await connectionFactory.Connection.GetAllAsync<Models.VisitorModel>();
-                var models = mapper.Map<List<VisitorModel>>(visitors);
-                return models.Where(x => x.Article == id).Count(IVisitorRepository.ShouldCountVisitor);
-            }
+            var activity = applicationContextActivityDecorator.StartActivity($"{nameof(RelationalDbVisitorRepository)}.{nameof(CountByArticleIdAsync)}");
+            var visitors = await connectionFactory.Connection.GetAllAsync<Models.VisitorModel>();
+            var models = mapper.Map<List<VisitorModel>>(visitors);
+            return models.Where(x => x.Article == id).Count(IVisitorRepository.ShouldCountVisitor);
         }
 
         public static void EnsureTableExists(MySqlConnection connection)

@@ -28,17 +28,18 @@ namespace NtFreX.Blog.Services
         {
             await tagRepository.UpdateTagsForArticle(model.Tags, model.Article.Id);
 
-            await cache.RemoveSaveAsync(CacheKeys.AllDistinctTags);
-            await cache.RemoveSaveAsync(CacheKeys.AllPublishedTags);
-            await cache.RemoveSaveAsync(CacheKeys.AllDistinctPublishedTags);
-            await cache.RemoveSaveAsync(CacheKeys.AllTags);
-            await cache.RemoveSaveAsync(CacheKeys.TagsByArticleId(model.Article.Id));
+            await cache.RemoveSaveAsync(CacheKeys.AllDistinctTags.Name);
+            await cache.RemoveSaveAsync(CacheKeys.AllPublishedTags.Name);
+            await cache.RemoveSaveAsync(CacheKeys.AllDistinctPublishedTags.Name);
+            await cache.RemoveSaveAsync(CacheKeys.AllTags.Name);
+            await cache.RemoveSaveAsync(CacheKeys.TagsByArticleId.Name(model.Article.Id));
         }
 
 
         public async Task<IReadOnlyList<TagDto>> GetAllTagsAsync(bool includeUnpublished)
         {
-            return await cache.CacheAsync(includeUnpublished ? CacheKeys.AllTags : CacheKeys.AllPublishedTags, CacheKeys.TimeToLive, async () =>
+            var cacheKey = includeUnpublished ? CacheKeys.AllTags : CacheKeys.AllPublishedTags;
+            return await cache.CacheAsync(cacheKey.Name, cacheKey.TimeToLive, async () =>
             {
                 var tags = await tagRepository.FindAsync();
                 if (includeUnpublished)
@@ -54,13 +55,14 @@ namespace NtFreX.Blog.Services
 
         public async Task<IReadOnlyList<TagDto>> GetTagsByArticleIdAsync(string articleId)
             => await cache.CacheAsync(
-                CacheKeys.TagsByArticleId(articleId),
-                CacheKeys.TimeToLive,
+                CacheKeys.TagsByArticleId.Name(articleId),
+                CacheKeys.TagsByArticleId.TimeToLive,
                 async () => mapper.Map<List<TagDto>>(await tagRepository.FindByArticleIdAsync(articleId)));
 
         public async Task<IReadOnlyList<string>> GetAllDistinctTagsAsync(bool includeUnpublished)
         {
-            return await cache.CacheAsync(includeUnpublished ? CacheKeys.AllDistinctTags : CacheKeys.AllDistinctPublishedTags, CacheKeys.TimeToLive, async () =>
+            var cacheKey = includeUnpublished ? CacheKeys.AllDistinctTags : CacheKeys.AllDistinctPublishedTags;
+            return await cache.CacheAsync(cacheKey.Name, cacheKey.TimeToLive, async () =>
             {
                 var all = await GetAllTagsAsync(includeUnpublished);
                 return all.GroupBy(d => d.Name).OrderByDescending(d => d.Count()).Select(d => d.Key).ToList();

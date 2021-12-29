@@ -1,0 +1,63 @@
+﻿@page "/images"
+
+@inject HttpClient Http
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+
+<Title Value='@(Configuration.BlogConfiguration.BlogTitle + " - Images")' />
+
+<div><InputFile OnChange="@UploadFileAsync" /></div>
+<div><span>Overwrite existing</span><input type="checkbox" @bind-value="@overwriteExisting" /></div>
+<div><span style="color:red;">@errorMessage</span></div>
+
+<hr/>
+
+<div>
+    @foreach(var image in imageNames)
+    {  
+        <div>
+            <div><span>@image</span></div>
+            <div style="border:1px solid black;margin:5px;padding:5px;"><img style="max-width:100%;" alt="@(image)" src="/api/image/@(image)"/></div>
+        </div>
+    }
+</div>
+
+
+@code {
+    private List<string> imageNames;
+    private bool overwriteExisting;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        overwriteExisting = false;
+        errorMessage = string.Empty;
+        imageNames = new List<string>();
+
+        await LoadImagesAsync();
+    }
+    private async Task LoadImagesAsync()
+    {
+        imageNames = await Http.GetFromJsonAsync<List<string>>($"/api/image/names");
+    }
+
+    private async Task UploadFileAsync(InputFileChangeEventArgs e)
+    {
+        if (imageNames.Contains(e.File.Name) && !overwriteExisting)
+        {
+            errorMessage = $"A image with the name {e.File.Name} already exists.";
+            return;
+        }
+
+        try
+        {
+            using var stream = e.File.OpenReadStream();
+            await Http.PostAsync($"/api/image/{e.File.Name}", new StreamContent(stream));
+            await LoadImagesAsync();
+            errorMessage = string.Empty;
+        }
+        catch (Exception exce)
+        {
+            errorMessage = exce.Message;
+        }
+    }
+}

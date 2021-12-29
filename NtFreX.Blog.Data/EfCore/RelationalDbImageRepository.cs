@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Dapper;
@@ -14,22 +13,21 @@ namespace NtFreX.Blog.Data.EfCore
     {
         private readonly MySqlConnectionFactory connectionFactory;
         private readonly IMapper mapper;
+        private readonly ApplicationContextActivityDecorator applicationContextActivityDecorator;
 
-        public RelationalDbImageRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
-            : base(connectionFactory, mapper)
+        public RelationalDbImageRepository(MySqlConnectionFactory connectionFactory, IMapper mapper, ApplicationContextActivityDecorator applicationContextActivityDecorator)
+            : base(connectionFactory, mapper, applicationContextActivityDecorator)
         {
             this.connectionFactory = connectionFactory;
             this.mapper = mapper;
+            this.applicationContextActivityDecorator = applicationContextActivityDecorator;
         }
 
-        public async Task<ImageModel> FindByName(string name)
+        public async Task<ImageModel> FindByNameAsync(string name)
         {
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbImageRepository)}.{nameof(FindByName)}", ActivityKind.Server))
-            {
-                var dbModels = await connectionFactory.Connection.GetAllAsync<Models.ImageModel>();
-                return mapper.Map<ImageModel>(dbModels.First(x => x.Name == name));
-            }
+            var activity = applicationContextActivityDecorator.StartActivity($"{nameof(RelationalDbImageRepository)}.{nameof(FindByNameAsync)}");
+            var dbModels = await connectionFactory.Connection.GetAllAsync<Models.ImageModel>();
+            return mapper.Map<ImageModel>(dbModels.First(x => x.Name == name));
         }
 
         public static void EnsureTableExists(MySqlConnection connection)

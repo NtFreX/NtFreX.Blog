@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using NtFreX.Blog.Logging;
+using NtFreX.Blog.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +7,7 @@ namespace NtFreX.Blog.Health
 {
     public class CertificateExpiringHealthCheck : ApplicationHealthCheck
     {
-        public CertificateExpiringHealthCheck(TraceActivityDecorator traceActivityDecorator)
+        public CertificateExpiringHealthCheck(ApplicationContextActivityDecorator traceActivityDecorator)
             : base(traceActivityDecorator) { }
 
         public override Task<HealthCheckResult> DoCheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)

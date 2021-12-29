@@ -9,7 +9,6 @@ using MongoDB.Driver;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
-using NtFreX.Blog.Logging;
 using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Models;
 
@@ -17,7 +16,7 @@ namespace NtFreX.Blog.Services
 {
     public class CommentService
     {
-        private readonly TraceActivityDecorator traceActivityDecorator;
+        private readonly ApplicationContextActivityDecorator traceActivityDecorator;
         private readonly ICommentRepository commentRepository;
         private readonly IMapper mapper;
         private readonly ApplicationCache cache;
@@ -25,7 +24,7 @@ namespace NtFreX.Blog.Services
 
         private static readonly Counter<int> CommmentCreatedCounter = Program.Meter.CreateCounter<int>($"CommentCreated", description: "The number of comments created");
         
-        public CommentService(TraceActivityDecorator traceActivityDecorator, ICommentRepository commentRepository, IMapper mapper, ApplicationCache cache, IMessageBus messageBus)
+        public CommentService(ApplicationContextActivityDecorator traceActivityDecorator, ICommentRepository commentRepository, IMapper mapper, ApplicationCache cache, IMessageBus messageBus)
         {
             this.traceActivityDecorator = traceActivityDecorator;
             this.commentRepository = commentRepository;
@@ -38,8 +37,9 @@ namespace NtFreX.Blog.Services
         public async Task<IReadOnlyList<CommentDto>> GetCommentsByArticleIdAsync(string id)
         {
             using var activity = traceActivityDecorator.StartActivity();
+            var cacheKey = CacheKeys.CommentsByArticleId;
 
-            return await cache.CacheAsync(CacheKeys.CommentsByArticleId(id), CacheKeys.TimeToLive, async () =>
+            return await cache.CacheAsync(cacheKey.Name(id), cacheKey.TimeToLive, async () =>
             {
                 var dbModels = await commentRepository.FindByArticleIdAsync(id);
                 return mapper.Map<List<CommentDto>>(dbModels).OrderByDescending(x => x.Date).ToList();
@@ -54,7 +54,7 @@ namespace NtFreX.Blog.Services
             dbModel.Date = DateTime.UtcNow;
 
             await commentRepository.InsertAsync(dbModel);
-            await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId(model.ArticleId));
+            await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId.Name(model.ArticleId));
 
             var tags = new[] {
                     new KeyValuePair<string, object>("user", model.User)

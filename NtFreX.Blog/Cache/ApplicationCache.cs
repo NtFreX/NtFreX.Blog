@@ -8,13 +8,12 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NtFreX.Blog.Configuration;
-using NtFreX.Blog.Logging;
 
 namespace NtFreX.Blog.Cache
 {
     public class ApplicationCache
     {
-        private readonly TraceActivityDecorator traceActivityDecorator;
+        private readonly ApplicationContextActivityDecorator applicationContextActivityDecorator;
         private readonly IMemoryCache memoryCache;
         private readonly IDistributedCache distributedCache;
         private readonly ILogger<ApplicationCache> logger;
@@ -23,9 +22,9 @@ namespace NtFreX.Blog.Cache
         private static readonly Counter<int> CacheHitSuccessCounter = Program.Meter.CreateCounter<int>($"CacheHitSuccesses", description: "The number of successful cache hits");
         private static readonly Counter<int> CacheHitFailedCounter = Program.Meter.CreateCounter<int>($"CacheHitFailures", description: "The number of failed cache hits");
 
-        public ApplicationCache(TraceActivityDecorator traceActivityDecorator, IMemoryCache memoryCache, IDistributedCache distributedCache, ILogger<ApplicationCache> logger)
+        public ApplicationCache(ApplicationContextActivityDecorator applicationContextActivityDecorator, IMemoryCache memoryCache, IDistributedCache distributedCache, ILogger<ApplicationCache> logger)
         {
-            this.traceActivityDecorator = traceActivityDecorator;
+            this.applicationContextActivityDecorator = applicationContextActivityDecorator;
             this.memoryCache = memoryCache;
             this.distributedCache = distributedCache;
             this.logger = logger;
@@ -48,7 +47,7 @@ namespace NtFreX.Blog.Cache
 
         public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
         {
-            using var activity = traceActivityDecorator.StartActivity();
+            using var activity = applicationContextActivityDecorator.StartActivity();
             activity.AddTag("cacheKey", key);
 
             logger.LogTrace($"Requesting cache for key {key}");
@@ -76,7 +75,7 @@ namespace NtFreX.Blog.Cache
 
         public async Task RemoveAsync(string key, CancellationToken token = default)
         {
-            using var activity = traceActivityDecorator.StartActivity();
+            using var activity = applicationContextActivityDecorator.StartActivity();
             activity.AddTag("cacheKey", key);
 
             logger.LogInformation($"Removing cached value for key {key}");

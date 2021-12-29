@@ -15,7 +15,7 @@ namespace NtFreX.Blog.Data.MongoDb
             this.mapper = mapper;
         }
 
-        public async Task<ImageModel> FindByName(string name)
+        public async Task<ImageModel> FindByNameAsync(string name)
         { 
             var dbModel = await Collection.Find(d => d.Name == name).FirstAsync();
             return mapper.Map<ImageModel>(dbModel);

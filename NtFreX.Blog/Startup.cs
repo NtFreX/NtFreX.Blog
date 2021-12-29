@@ -16,7 +16,6 @@ using NtFreX.Blog.Data;
 using NtFreX.Blog.Data.EfCore;
 using NtFreX.Blog.Data.MongoDb;
 using NtFreX.Blog.Health;
-using NtFreX.Blog.Logging;
 using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Services;
 using OpenTelemetry.Contrib.Extensions.AWSXRay.Resources;
@@ -157,6 +156,10 @@ namespace NtFreX.Blog
             {
                 services.AddTransient<ITwoFactorAuthenticator, MessageBusTwoFactorAuthenticator>();
             }
+            else
+            {
+                services.AddTransient<ITwoFactorAuthenticator, NullTwoFactorAuthenticator>();
+            }
 
             services.AddAuthorization(options => options.AddPolicy(AuthorizationPolicyNames.OnlyAsAdmin, configure => configure.AddRequirements(new OnlyAsAdminAuthorizationRequirement())));
             services.AddSingleton<IAuthorizationHandler, OnlyAsAdminAuthorizationHandler>();
@@ -182,7 +185,9 @@ namespace NtFreX.Blog
             });
 
             services.AddTransient<RecaptchaManager>();
-            services.AddTransient<TraceActivityDecorator>();
+
+            services.AddSingleton(Program.ActivitySource);
+            services.AddTransient<ApplicationContextActivityDecorator>();
             services.AddTransient<ApplicationCache>();
             services.AddTransient<ArticleService>();
             services.AddTransient<CommentService>();
