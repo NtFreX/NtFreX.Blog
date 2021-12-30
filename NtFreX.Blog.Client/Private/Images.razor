@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Web.Extensions.Head
 
 <Title Value='@(Configuration.BlogConfiguration.BlogTitle + " - Images")' />
+<Meta name="robots" content="noindex" />
 
 <div><InputFile OnChange="@UploadFileAsync" /></div>
 <div><span>Overwrite existing</span><input type="checkbox" @bind-value="@overwriteExisting" /></div>

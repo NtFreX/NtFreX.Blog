@@ -17,6 +17,7 @@ $description = $app + $version
 #   --template ./infrastructure/prod/blog/ingress_security_rule.yaml `
 #   --stack-name "NtFreXBlogIngressSecurityGroup"
 
+# TODO: it does probably make no sense to deploy the rights for github to deploy from the depoly of github, so there needs to be a setup script (repository, github credentials, more?, config variables for different envs (pws, ports etc)??)
 # aws cloudformation deploy `
 #   --template ./infrastructure/prod/blog/github_openid_provider.yaml `
 #   --stack-name "NtFreXBlogGithubOpenIdProvider" `

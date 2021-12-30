@@ -70,16 +70,24 @@
     </script>
 
     <title>@Configuration.BlogConfiguration.BlogTitle</title>
-    <meta charset="utf-8" />
-    <meta name="description" content="@Configuration.BlogConfiguration.BlogDescription" />
-    
+
     <meta property="og:type"          content="website" />
     <meta property="og:title"         content="@Configuration.BlogConfiguration.BlogTitle" />
     <meta property="og:description"   content="@Configuration.BlogConfiguration.BlogDescription" />
     <meta property="og:image"         content="@Configuration.BlogConfiguration.BlogOwnerProfileImage" />
+    
+    <meta name="twitter:creator"      content="@($"@{Configuration.BlogConfiguration.TwitterUser}")">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="language"             content="English">
+    <meta name="title"                content="@Configuration.BlogConfiguration.BlogTitle" />
+    <meta name="author"               content="@Configuration.BlogConfiguration.BlogOwner">
+    <meta name="description"          content="@Configuration.BlogConfiguration.BlogDescription" />
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="expires" content="43200"/>
+    <meta name="robots" content="index,follow" />
     <meta name="theme-color" content="#F9F9F9" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="
           script-src    * 'unsafe-inline' 'unsafe-eval';
           style-src     * data: blob: 'unsafe-inline';
@@ -87,6 +95,7 @@
           font-src      * data: blob: 'unsafe-inline';
           connect-src   * data: blob: 'unsafe-inline';
           " />
+
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="css/site.css" />
