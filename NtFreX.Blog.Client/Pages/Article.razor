@@ -33,12 +33,14 @@
 else
 {
     <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - {article.Title}")' />
-    
     <Meta property="og:url"           content="@navigationManager.Uri" />
     <Meta property="og:type"          content="article" />
     <Meta property="og:title"         content="@(article.Title)" />
     <Meta property="og:description"   content="@(article.Subtitle)" />
-    <Meta property="og:image"         content="@(GetImage())" />
+    @if (!string.IsNullOrEmpty(articleImage))
+    {
+        <Meta property="og:image"         content="@articleImage" />
+    }
 
     <div class="card article">
         <div class="card-body">
@@ -119,6 +121,7 @@ else
     private CreateCommentDto newComment = new CreateCommentDto();
     private bool isAdmin;
     private string captchaResponse;
+    private string articleImage;
 
     [Parameter] public string Id { get; set; }
 
@@ -131,7 +134,7 @@ else
         doc.LoadHtml(article.Content);
 
         var imageNodes = doc.DocumentNode.SelectNodes("//img");
-        if (!imageNodes.Any())
+        if (imageNodes == null || !imageNodes.Any())
             return string.Empty;
 
         var imagePath = imageNodes.First().GetAttributeValue("src", string.Empty);
@@ -166,6 +169,8 @@ else
                 new Func<Task>(async () => await Http.GetAsync($"/api/article/visit/{Id}")).Invoke(),
                 new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
             });
+
+            articleImage = GetImage();
         }
         catch
         {

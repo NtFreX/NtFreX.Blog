@@ -51,9 +51,7 @@ namespace NtFreX.Blog.Web
 
             var bytes = Convert.FromBase64String(image.Data);
             var stream = new MemoryStream(bytes);
-            var result = new FileStreamResult(stream, image.Type);
-            result.FileDownloadName = name;
-            return result;
+            return new FileStreamResult(stream, image.Type);
         }
 
         [HttpPost, Route("{name}")]
