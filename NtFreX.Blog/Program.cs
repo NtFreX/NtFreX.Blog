@@ -108,8 +108,8 @@ namespace NtFreX.Blog
                 logger.Debug("init main");
                 logger.Debug($"AspNetCoreEnvironment={Configuration.Environment.AspNetCoreEnvironment}");
 
-                if (BlogConfiguration.IsAwsEBS)
-                    RunShellScript(logger, "./.ebextensions/setup.sh");
+                if (BlogConfiguration.RunSetupShellScript)
+                    RunShellScript(logger, "./setup/setup.sh");
 
                 var app = await LoadConfigurationAsync();
                 var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);
