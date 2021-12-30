@@ -34,7 +34,7 @@ else
 {
     <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - {article.Title}")' />
     
-    <meta property="og:url"           content="@navigationManager.Uri" />
+    <Meta property="og:url"           content="@navigationManager.Uri" />
     <Meta property="og:type"          content="article" />
     <Meta property="og:title"         content="@(article.Title)" />
     <Meta property="og:description"   content="@(article.Subtitle)" />
@@ -134,7 +134,16 @@ else
         if (!imageNodes.Any())
             return string.Empty;
 
-        return imageNodes.First().GetAttributeValue("src", string.Empty);
+        var imagePath = imageNodes.First().GetAttributeValue("src", string.Empty);
+        if (string.IsNullOrEmpty(imagePath))
+            return string.Empty;
+
+        if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
+            return imagePath;
+
+        var baseUri = navigationManager.BaseUri.EndsWith("/") ? navigationManager.BaseUri.Substring(0, navigationManager.BaseUri.Length - 1) : navigationManager.BaseUri;
+        var normalizedImagePath = imagePath.StartsWith("/") ? imagePath : $"/{imagePath}";
+        return baseUri + imagePath;
     } 
 
     protected override async Task OnParametersSetAsync()
