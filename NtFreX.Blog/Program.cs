@@ -110,7 +110,9 @@ namespace NtFreX.Blog
                 logger.Debug($"AspNetCoreEnvironment={Configuration.Environment.AspNetCoreEnvironment}");
 
                 if (BlogConfiguration.RunSetupShellScript)
+                {
                     RunShellScript(logger, "setup/setup.sh");
+                }
 
                 var app = await LoadConfigurationAsync();
                 var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);

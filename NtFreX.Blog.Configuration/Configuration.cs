@@ -37,7 +37,7 @@ namespace NtFreX.Blog.Configuration
         public const bool IsAwsLambda = false;
         public const bool IsAwsEC2 = false;
         public static bool IsAwsEBS => Environment.IsProduction();
-        public static bool RunSetupShellScript => Environment.IsProduction();
+        public static bool RunSetupShellScript => false; //TODO: fix permissions in prod env to be able to run this script //Environment.IsProduction();
         public static MessageBusType MessageBus => Environment.IsProduction() ? MessageBusType.AwsEventBus : MessageBusType.RabbitMq;
         public static CacheType ApplicationCacheType => Environment.IsProduction() ? CacheType.InMemory : CacheType.Distributed;
         public static string ReCaptchaSiteKey => Environment.IsProduction() ? "6LduElQdAAAAAD_Udn9ZwNUhQLJr5GP2Ih8Y-dYt" : "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
