@@ -84,9 +84,10 @@ namespace NtFreX.Blog
         private static void RunShellScript(Logger logger, string script)
         {
             logger.Info($"Running startup script with path '{script}'");
-            var process = Process.Start(new ProcessStartInfo(script) 
-            { 
-                UseShellExecute = true 
+            var process = Process.Start(new ProcessStartInfo(script)
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true
             });
 
             while (!process.StandardOutput.EndOfStream)
