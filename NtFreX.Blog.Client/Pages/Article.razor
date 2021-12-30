@@ -33,14 +33,23 @@
 else
 {
     <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - {article.Title}")' />
-    <Meta property="og:url"           content="@navigationManager.Uri" />
-    <Meta property="og:type"          content="article" />
-    <Meta property="og:title"         content="@(article.Title)" />
-    <Meta property="og:description"   content="@(article.Subtitle)" />
-    @if (!string.IsNullOrEmpty(articleImage))
+    <Meta property="og:url"                     content="@navigationManager.Uri" />
+    <Meta property="og:type"                    content="article" />
+    <Meta property="og:article:published_time"  content="@(article.Date)" />
+    <Meta property="og:title"                   content="@(article.Title)" />
+    <Meta property="og:description"             content="@(article.Subtitle)" />
+    @foreach(var tag in tags)
     {
-        <Meta property="og:image"         content="@articleImage" />
+        <Meta property="og:article:tag"  content="@(tag.Name)" />
+    }    
+    @foreach(var image in articleImages)
+    {
+        <Meta property="og:image" content="@image" />
     }
+
+    <Meta name="title"                content="@article.Title" />
+    <Meta name="description"          content="@Configuration.BlogConfiguration.BlogDescription" />
+    <Meta name="keywords"             content="@metaDataTags"/>
 
     <div class="card article">
         <div class="card-body">
@@ -74,7 +83,7 @@ else
         </div>
     </div>
 
-    <NtFreX.Blog.Client.Components.Share Title="@(article.Title)" Description="@(article.Subtitle)" Username="@(Configuration.BlogConfiguration.BlogOwner)" />
+    <NtFreX.Blog.Client.Components.Share Title="@(article.Title)" Description="@(article.Subtitle)" />
 
     <div class="comments">
         <div class="card">
@@ -121,32 +130,38 @@ else
     private CreateCommentDto newComment = new CreateCommentDto();
     private bool isAdmin;
     private string captchaResponse;
-    private string articleImage;
+    private string[] articleImages;
+    private string metaDataTags;
 
     [Parameter] public string Id { get; set; }
 
-    public string GetImage() 
+    private string NormalizeImagePath(string imagePath)
+    {
+        if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
+            return imagePath;
+
+        var baseUri = navigationManager.BaseUri.EndsWith("/") ? navigationManager.BaseUri.Substring(0, navigationManager.BaseUri.Length - 1) : navigationManager.BaseUri;
+        var normalizedImagePath = imagePath.StartsWith("/") ? imagePath : $"/{imagePath}";
+        return normalizedImagePath;
+    }
+
+    public string[] GetImages() 
     {
         if (article == null)
-            return string.Empty;
+            return Array.Empty<string>();
 
         var doc = new HtmlDocument();
         doc.LoadHtml(article.Content);
 
         var imageNodes = doc.DocumentNode.SelectNodes("//img");
         if (imageNodes == null || !imageNodes.Any())
-            return string.Empty;
+            return Array.Empty<string>();
 
-        var imagePath = imageNodes.First().GetAttributeValue("src", string.Empty);
-        if (string.IsNullOrEmpty(imagePath))
-            return string.Empty;
-
-        if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
-            return imagePath;
-
-        var baseUri = navigationManager.BaseUri.EndsWith("/") ? navigationManager.BaseUri.Substring(0, navigationManager.BaseUri.Length - 1) : navigationManager.BaseUri;
-        var normalizedImagePath = imagePath.StartsWith("/") ? imagePath : $"/{imagePath}";
-        return baseUri + imagePath;
+        return imageNodes
+            .Select(x => x.GetAttributeValue("src", string.Empty))
+            .Where(x => !string.IsNullOrEmpty(x))
+            .Select(x => NormalizeImagePath(x))
+            .ToArray();
     } 
 
     protected override async Task OnParametersSetAsync()
@@ -170,7 +185,8 @@ else
                 new Func<Task>(async () => await Task.Delay(TimeSpan.FromMilliseconds(Configuration.BlogConfiguration.MinPageLoadTimeInMs))).Invoke(),
             });
 
-            articleImage = GetImage();
+            articleImages = GetImages();
+            metaDataTags = string.Join(", ", tags.Select(x => x.Name));
         }
         catch
         {

@@ -6,6 +6,8 @@
 @if (article != null)
 {
     <Title Value='@(Configuration.BlogConfiguration.BlogTitle + " - " + article.Title)' />
+    <Meta name="robots" content="noindex" />
+
     <div style="display:flex; flex-direction: @flexDirection;height: 100vh; margin-top: -1.1rem;">
         <div>
             <div><span style="width: 20%; display: block; float: left;">Title</span><input style="width: 80%;" @bind="article.Title" /></div>

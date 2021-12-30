@@ -3,7 +3,7 @@
 @inject NavigationManager navigationManager
 
 <div class="share-btn-container">
-    <a class="share-btn twitter" target="_blank" href="@($"https://twitter.com/share?url={Url}&text={Title}&via={Username}")">
+    <a class="share-btn twitter" target="_blank" href="@($"https://twitter.com/share?url={Url}&text={Title}&via={username}")">
         Twitter
     </a>
 
@@ -28,15 +28,15 @@
     </a>
 
     <!-- Email (subject, body) -->
-    <a class="share-btn email" target="_blank" href="mailto:?subject={Title}&body=@($"{Url}{Environment.NewLine}{Description}")">
+    <a class="share-btn email" target="_blank" href="@($"mailto:?subject={Title}&body={Url}{Environment.NewLine}{Description}")">
         Email
     </a>
 </div>
 
 @code {
     private string description;
-    private string username;
     private string title;
+    private string username => string.IsNullOrEmpty(Configuration.BlogConfiguration.TwitterUser) ? Configuration.BlogConfiguration.BlogOwner : Configuration.BlogConfiguration.TwitterUser;
 
     private string Encode(string value) => HttpUtility.UrlEncode(value);
 
@@ -54,12 +54,5 @@
     { 
         get => Encode(description);
         set => description = value;
-    }
-
-    [Parameter]
-    public string Username
-    { 
-        get => Encode(username);
-        set => username = value;
     }
 }
