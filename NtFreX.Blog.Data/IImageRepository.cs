@@ -5,6 +5,6 @@ namespace NtFreX.Blog.Data
 {
     public interface IImageRepository : IRepository<ImageModel>
     {
-        Task<ImageModel> FindByName(string name);
+        Task<ImageModel> FindByNameAsync(string name);
     }
 }

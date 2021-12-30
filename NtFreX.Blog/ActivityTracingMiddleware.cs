@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using NtFreX.Blog.Logging;
+using NtFreX.Blog.Configuration;
 using System.Threading.Tasks;
 
 namespace NtFreX.Blog
@@ -8,10 +8,10 @@ namespace NtFreX.Blog
     public class ActivityTracingMiddleware
     {
         private readonly RequestDelegate next;
-        private readonly TraceActivityDecorator traceActivityDecorator;
+        private readonly ApplicationContextActivityDecorator traceActivityDecorator;
         private readonly ILogger<ActivityTracingMiddleware> logger;
 
-        public ActivityTracingMiddleware(RequestDelegate next, TraceActivityDecorator traceActivityDecorator, ILogger<ActivityTracingMiddleware> logger)
+        public ActivityTracingMiddleware(RequestDelegate next, ApplicationContextActivityDecorator traceActivityDecorator, ILogger<ActivityTracingMiddleware> logger)
         {
             this.next = next;
             this.traceActivityDecorator = traceActivityDecorator;
@@ -20,7 +20,7 @@ namespace NtFreX.Blog
 
         public async Task Invoke(HttpContext httpContext)
         {
-            using var activity = traceActivityDecorator.StartActivity(name: "NtFreX.Blog.Request");
+            using var activity = traceActivityDecorator.StartActivity();
 
             var traceId = httpContext.Items[HttpContextItemNames.TraceId];
             using (logger.BeginScope(traceId))

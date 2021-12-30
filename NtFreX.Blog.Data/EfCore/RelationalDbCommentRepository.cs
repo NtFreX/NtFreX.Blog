@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -16,22 +15,21 @@ namespace NtFreX.Blog.Data.EfCore
     {
         private readonly MySqlConnectionFactory connectionFactory;
         private readonly IMapper mapper;
+        private readonly ApplicationContextActivityDecorator applicationContextActivityDecorator;
 
-        public RelationalDbCommentRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
-            : base(connectionFactory, mapper)
+        public RelationalDbCommentRepository(MySqlConnectionFactory connectionFactory, IMapper mapper, ApplicationContextActivityDecorator applicationContextActivityDecorator)
+            : base(connectionFactory, mapper, applicationContextActivityDecorator)
         {
             this.connectionFactory = connectionFactory;
             this.mapper = mapper;
+            this.applicationContextActivityDecorator = applicationContextActivityDecorator;
         }
 
         public async Task<IReadOnlyList<CommentModel>> FindByArticleIdAsync(string id)
         {
-            var activitySource = new ActivitySource(BlogConfiguration.ActivitySourceName);
-            using (var activity = activitySource.StartActivity($"{nameof(RelationalDbCommentRepository)}.{nameof(FindByArticleIdAsync)}", ActivityKind.Server))
-            {
-                var dbModels = await connectionFactory.Connection.GetAllAsync<Models.CommentModel>();
-                return mapper.Map<List<CommentModel>>(dbModels.Where(x => x.ArticleId.ToString() == id).ToList());
-            }
+            var activity = applicationContextActivityDecorator.StartActivity($"{nameof(RelationalDbCommentRepository)}.{nameof(FindByArticleIdAsync)}");
+            var dbModels = await connectionFactory.Connection.GetAllAsync<Models.CommentModel>();
+            return mapper.Map<List<CommentModel>>(dbModels.Where(x => x.ArticleId.ToString() == id).ToList());
         }
 
         public static void EnsureTableExists(MySqlConnection connection)

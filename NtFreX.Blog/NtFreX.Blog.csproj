@@ -49,7 +49,7 @@
 
 
   <ItemGroup>
-    <None Include=".ebextensions\ebs.config">
+    <None Include=".ebextensions\setup.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="otel_config.yaml">

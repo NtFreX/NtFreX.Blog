@@ -106,6 +106,16 @@ namespace NtFreX.Blog.Configuration
         public static bool IsProduction() => AspNetCoreEnvironment.ToLower() == "production";
     }
 
+    public class ClaimNames
+    {
+        public const string Id = "id";
+    }
+
+    public class HttpContextItemNames
+    {
+        public const string TraceId = "traceId";
+    }
+
     public enum MessageBusType
     {
         None,

@@ -5,7 +5,6 @@ using NtFreX.Blog.Auth;
 using NtFreX.Blog.Core;
 using NtFreX.Blog.Models;
 using NtFreX.Blog.Services;
-using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,7 +34,7 @@ namespace NtFreX.Blog.Web
         [HttpGet("visit/{articleId}")]
         public async Task VisitAsync(string articleId)
         {
-            if (!hostEnvironment.IsProduction())
+            if (!hostEnvironment.IsProduction() || authorizationManager.IsAdmin())
                 return;
 
             await articleService.VisitArticleAsync(articleId, httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString(), httpContextAccessor.HttpContext.Request.Headers["User-Agent"]);

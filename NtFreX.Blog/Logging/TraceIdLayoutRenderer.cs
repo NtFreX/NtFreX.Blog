@@ -1,4 +1,6 @@
-﻿namespace NtFreX.Blog.Logging
+﻿using NtFreX.Blog.Configuration;
+
+namespace NtFreX.Blog.Logging
 {
     public class TraceIdLayoutRenderer : HttpContextItemLayoutRenderer
     {
