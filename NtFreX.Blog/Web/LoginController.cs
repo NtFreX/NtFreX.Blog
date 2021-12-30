@@ -5,7 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 using NtFreX.Blog.Auth;
 using NtFreX.Blog.Cache;
 using NtFreX.Blog.Configuration;
-using NtFreX.Blog.Logging;
 using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Models;
 using System;
@@ -23,7 +22,7 @@ namespace NtFreX.Blog.Web
     [ApiController, Route("api/{controller}")]
     public class LoginController : ControllerBase
     {
-        private readonly TraceActivityDecorator traceActivityDecorator;
+        private readonly ApplicationContextActivityDecorator traceActivityDecorator;
         private readonly ConfigPreloader configPreloader;
         private readonly ApplicationCache cache;
         private readonly RecaptchaManager recaptchaManager;
@@ -33,14 +32,13 @@ namespace NtFreX.Blog.Web
         private readonly IHttpContextAccessor httpContextAccessor;
 
         public const int MaxLoginTries = 5;
-        public const int PersistLoginAttemptsForXHours = 24;
 
         private static readonly Counter<int> LoginAttemptsCounter = Program.Meter.CreateCounter<int>($"LoginAttempts", description: "The number of login attempts");
         private static readonly Counter<int> LoginSuccessCounter = Program.Meter.CreateCounter<int>($"LoginSuccess", description: "The number of successful logins");
         private static readonly Counter<int> LoginFailedCounter = Program.Meter.CreateCounter<int>($"LoginFailed", description: "The number of failed logins");
 
         public LoginController(
-            TraceActivityDecorator traceActivityDecorator, 
+            ApplicationContextActivityDecorator traceActivityDecorator, 
             ConfigPreloader configPreloader, 
             ApplicationCache cache,
             RecaptchaManager recaptchaManager,
@@ -169,22 +167,24 @@ namespace NtFreX.Blog.Web
         {
             using var activity = traceActivityDecorator.StartActivity();
 
+            var cacheKey = CacheKeys.FailedLoginRequests;
+            var cacheKeyName = cacheKey.Name(credentials.Key);
             var usersAndPasswords = GetUsersAndPasswords();
-            var failedLoginRequests = await cache.TryGetAsync<int>(CacheKeys.FailedLoginRequests(credentials.Key));
+            var failedLoginRequests = await cache.TryGetAsync<int>(cacheKeyName);
             if (failedLoginRequests.Success && failedLoginRequests.Value >= MaxLoginTries)
             {
-                logger.LogInformation($"User {credentials.Key} has {failedLoginRequests.Value} failed login attempts in the last {PersistLoginAttemptsForXHours} hour(s) and cannot login");
+                logger.LogInformation($"User {credentials.Key} has {failedLoginRequests.Value} failed login attempts in the last {cacheKey.TimeToLive.TotalHours} hour(s) and cannot login");
                 return false;
             }
 
             if (!usersAndPasswords.ContainsKey(credentials.Key) || usersAndPasswords[credentials.Key] != credentials.Secret)
             {
                 logger.LogInformation($"The given password for the user {credentials.Key} is wrong");
-                await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Key), failedLoginRequests.Value + 1, TimeSpan.FromHours(PersistLoginAttemptsForXHours));
+                await cache.SetAsync(cacheKeyName, failedLoginRequests.Value + 1, cacheKey.TimeToLive);
                 return false;
             }
 
-            await cache.SetAsync(CacheKeys.FailedLoginRequests(credentials.Key), 0, TimeSpan.FromDays(1));
+            await cache.SetAsync(cacheKeyName, 0, cacheKey.TimeToLive);
             return true;            
         }
 

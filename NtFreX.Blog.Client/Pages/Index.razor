@@ -6,6 +6,7 @@
 
 @inject HttpClient Http
 @inject NavigationManager navigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JSRuntime
 
 <Title Value="@(title)" />
@@ -17,6 +18,8 @@
 @if (isAdmin)
 {
     <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:50px;z-index:9999;" @onclick="@CreateArticleAsync">Create</button>
+    <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:90px;z-index:9999;" @onclick="@ManageImages">Images</button>
+    <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:130px;z-index:9999;" @onclick="@LogoutAsync">Logout</button>
 }
 
 <div class="top-row d-flex">
@@ -54,6 +57,9 @@ else
         <ArticlePreview Article="@article.Article" Tags="@tags" IsAdmin="@isAdmin" Visits="@article.VisitorCount" />
     }
 }
+
+<NtFreX.Blog.Client.Components.Share Title="@(Configuration.BlogConfiguration.BlogTitle)" Description="@(Configuration.BlogConfiguration.BlogDescription)" Username="@(Configuration.BlogConfiguration.BlogOwner)" />
+
 @code {
     private IReadOnlyList<ArticleWithVisitsDto> articles;
     private TagDto[] tags;
@@ -93,5 +99,16 @@ else
     {
         var id = await Http.PostAsync("/api/article", null);
         navigationManager.NavigateTo($"/edit/{await id.Content.ReadAsStringAsync()}");
+    }
+
+    public void ManageImages()
+    {
+        navigationManager.NavigateTo($"/images/");
+    }
+
+    public async Task LogoutAsync()
+    {
+        await localStorage.RemoveItemAsync(JwtTokenHttpHandler.SessionStorageKey);
+        isAdmin = false;
     }
 }

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NtFreX.Blog.Configuration;
-using NtFreX.Blog.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -19,7 +18,7 @@ namespace NtFreX.Blog.Auth
 {
     class ApplicationAuthenticationHandler : AuthenticationHandler<ApplicationAuthenticationOptions>
     {
-        private readonly TraceActivityDecorator traceActivityDecorator;
+        private readonly ApplicationContextActivityDecorator applicationContextActivityDecorator;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly ConfigPreloader configPreloader;
         private readonly ILogger<ApplicationAuthenticationHandler> logger;
@@ -34,7 +33,7 @@ namespace NtFreX.Blog.Auth
         public static readonly Counter<int> RequestUnauthenticatedCount = Program.Meter.CreateCounter<int>("BearerRequestUnauthenticatedCount", description: "The number of requests unauthenticated by the Bearer scheme handler");
 
         public ApplicationAuthenticationHandler(
-            TraceActivityDecorator traceActivityDecorator,
+            ApplicationContextActivityDecorator applicationContextActivityDecorator,
             IOptionsMonitor<ApplicationAuthenticationOptions> options,
             ILoggerFactory loggerFactory,
             UrlEncoder urlEncoder,
@@ -44,14 +43,14 @@ namespace NtFreX.Blog.Auth
             : base(options, loggerFactory, urlEncoder, clock)
         {
             this.logger = loggerFactory.CreateLogger<ApplicationAuthenticationHandler>();
-            this.traceActivityDecorator = traceActivityDecorator;
+            this.applicationContextActivityDecorator = applicationContextActivityDecorator;
             this.httpContextAccessor = httpContextAccessor;
             this.configPreloader = configPreloader;
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            using var activity = traceActivityDecorator.StartActivity();
+            using var activity = applicationContextActivityDecorator.StartActivity();
 
             var authenticationResult = TryAuthenticate();
 

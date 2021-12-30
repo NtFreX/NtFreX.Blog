@@ -13,6 +13,17 @@ $version = "v" + $date
 $filename = "AWSDeploymentArchive_" + $app + "_" + $version + ".zip"
 $description = $app + $version
 
+# aws cloudformation deploy `
+#   --template ./infrastructure/prod/blog/ingress_security_rule.yaml `
+#   --stack-name "NtFreXBlogIngressSecurityGroup"
+
+# aws cloudformation deploy `
+#   --template ./infrastructure/prod/blog/github_openid_provider.yaml `
+#   --stack-name "NtFreXBlogGithubOpenIdProvider" `
+#   --parameter-overrides GitHubOrg=ntfrex RepositoryName=ntfrex.blog
+
+# Add all the other missing infrastructure here
+
 dotnet publish .\NtFreX.Blog\NtFreX.Blog.csproj --self-contained true --runtime linux-x64 --configuration Release
 
 Copy-Item ./NtFreX.Blog/bin/Release/net6.0/linux-x64/publish ./publish -Recurse
@@ -36,7 +47,7 @@ aws elasticbeanstalk update-environment `
   --region us-east-2 `
   --application-name $app `
   --environment-name $app-$ebsEnv `
-  --solution-stack-name "64bit Amazon Linux 2 v2.2.8 running .NET Core" `
+  --solution-stack-name "64bit Amazon Linux 2 v2.2.9 running .NET Core" `
   --version-label $version `
   --option-settings `
   Namespace=aws:elasticbeanstalk:application:environment,OptionName=ASPNETCORE_ENVIRONMENT,Value=$environment `

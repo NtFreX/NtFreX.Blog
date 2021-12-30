@@ -2,13 +2,14 @@
 using MySql.Data.MySqlClient;
 using Dapper;
 using AutoMapper;
+using NtFreX.Blog.Configuration;
 
 namespace NtFreX.Blog.Data.EfCore
 {
     public class RelationalDbArticleRepository : RelationalDbRepository<Models.ArticleModel, ArticleModel>, IArticleRepository
     {
-        public RelationalDbArticleRepository(MySqlConnectionFactory connectionFactory, IMapper mapper)
-            : base(connectionFactory, mapper)
+        public RelationalDbArticleRepository(MySqlConnectionFactory connectionFactory, IMapper mapper, ApplicationContextActivityDecorator applicationContextActivityDecorator)
+            : base(connectionFactory, mapper, applicationContextActivityDecorator)
         { }
 
         public static void EnsureTableExists(MySqlConnection connection)

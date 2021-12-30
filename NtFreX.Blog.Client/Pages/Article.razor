@@ -2,6 +2,9 @@
 
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject NavigationManager navigationManager
+
+@using HtmlAgilityPack
 @using Microsoft.AspNetCore.Components.Web.Extensions.Head
 
 @if (article == null)
@@ -30,6 +33,12 @@
 else
 {
     <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - {article.Title}")' />
+    
+    <Meta property="og:url"           content="@navigationManager.Uri" />
+    <Meta property="og:type"          content="article" />
+    <Meta property="og:title"         content="@(article.Title)" />
+    <Meta property="og:description"   content="@(article.Subtitle)" />
+    <Meta property="og:image"         content="@(GetImage())" />
 
     <div class="card article">
         <div class="card-body">
@@ -62,6 +71,8 @@ else
             </div>
         </div>
     </div>
+
+    <NtFreX.Blog.Client.Components.Share Title="@(article.Title)" Description="@(article.Subtitle)" Username="@(Configuration.BlogConfiguration.BlogOwner)" />
 
     <div class="comments">
         <div class="card">
@@ -110,6 +121,30 @@ else
     private string captchaResponse;
 
     [Parameter] public string Id { get; set; }
+
+    public string GetImage() 
+    {
+        if (article == null)
+            return string.Empty;
+
+        var doc = new HtmlDocument();
+        doc.LoadHtml(article.Content);
+
+        var imageNodes = doc.DocumentNode.SelectNodes("//img");
+        if (!imageNodes.Any())
+            return string.Empty;
+
+        var imagePath = imageNodes.First().GetAttributeValue("src", string.Empty);
+        if (string.IsNullOrEmpty(imagePath))
+            return string.Empty;
+
+        if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
+            return imagePath;
+
+        var baseUri = navigationManager.BaseUri.EndsWith("/") ? navigationManager.BaseUri.Substring(0, navigationManager.BaseUri.Length - 1) : navigationManager.BaseUri;
+        var normalizedImagePath = imagePath.StartsWith("/") ? imagePath : $"/{imagePath}";
+        return baseUri + imagePath;
+    } 
 
     protected override async Task OnParametersSetAsync()
     {

@@ -13,7 +13,7 @@ namespace NtFreX.Blog.Health
         private readonly ApplicationCache cache;
         private readonly ConfigPreloader config;
 
-        public ToManyAdminLoginAttemptsHealthCheck(ApplicationCache cache, ConfigPreloader config, TraceActivityDecorator traceActivityDecorator)
+        public ToManyAdminLoginAttemptsHealthCheck(ApplicationCache cache, ConfigPreloader config, ApplicationContextActivityDecorator traceActivityDecorator)
             : base(traceActivityDecorator)
         {
             this.cache = cache;
@@ -23,8 +23,9 @@ namespace NtFreX.Blog.Health
         public override async Task<HealthCheckResult> DoCheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             var adminUsername = config.Get(ConfigNames.AdminUsername);
-            var attempts = await cache.TryGetAsync<int>(CacheKeys.FailedLoginRequests(adminUsername));
-            var message = $"There are {attempts.Value} login attempts for the admin user in the last {LoginController.PersistLoginAttemptsForXHours} hours";
+            var cacheKey = CacheKeys.FailedLoginRequests;
+            var attempts = await cache.TryGetAsync<int>(cacheKey.Name(adminUsername));
+            var message = $"There are {attempts.Value} login attempts for the admin user in the last {cacheKey.TimeToLive} hours";
             if (attempts.Success && attempts.Value >= LoginController.MaxLoginTries)
                 return HealthCheckResult.Degraded(message);
 

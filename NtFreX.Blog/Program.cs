@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 using NLog;
 using NLog.Config;
 using NLog.Web;
@@ -80,6 +81,22 @@ namespace NtFreX.Blog
                 .UseUrls($"http://*:{BlogConfiguration.HttpPort};https://*:{BlogConfiguration.HttpsPort}");
         }
 
+        private static void RunShellScript(Logger logger, string script)
+        {
+            logger.Info($"Running startup script with path '{script}'");
+            var process = Process.Start(new ProcessStartInfo(script) 
+            { 
+                UseShellExecute = true 
+            });
+
+            while (!process.StandardOutput.EndOfStream)
+            {
+                logger.Info($"{script} > {process.StandardOutput.ReadLine()}");
+            }
+
+            process.WaitForExit();
+        }
+
         public static async Task Main(string[] args)
         {
             ConfigurationItemFactory.Default.LayoutRenderers.RegisterDefinition("ntfrex-traceId", typeof(TraceIdLayoutRenderer));
@@ -91,9 +108,20 @@ namespace NtFreX.Blog
                 logger.Debug("init main");
                 logger.Debug($"AspNetCoreEnvironment={Configuration.Environment.AspNetCoreEnvironment}");
 
+                if (BlogConfiguration.IsAwsEBS)
+                    RunShellScript(logger, "./.ebextensions/setup.sh");
+
                 var app = await LoadConfigurationAsync();
                 var host = CreateHost(args, app.Configuration, app.ConfigProvider, app.ConfigLoader, app.ReddisConnectionString);
                 await host.RunAsync();
+            }
+            catch (MySqlException exception)
+            {
+                if (Configuration.Environment.IsDevelopment())
+                    logger.Info("A dependency could not be reached, did you start the development dependencies?");
+
+                logger.Error(exception, "Stopped program because of exception");
+                throw;
             }
             catch (Exception exception)
             {

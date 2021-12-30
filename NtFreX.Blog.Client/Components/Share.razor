@@ -1,0 +1,65 @@
+﻿@using System.Text
+@using System.Web
+@inject NavigationManager navigationManager
+
+<div class="share-btn-container">
+    <a class="share-btn twitter" target="_blank" href="@($"https://twitter.com/share?url={Url}&text={Title}&via={Username}")">
+        Twitter
+    </a>
+
+    <!-- Facebook (url) -->
+    <a class="share-btn facebook" target="_blank" href="@($"https://www.facebook.com/sharer/sharer.php?u={Url}")">
+        Facebook
+    </a>
+
+    <!-- Reddit (url, title) -->
+    <a class="share-btn reddit" target="_blank" href="@($"https://reddit.com/submit?url={Url}&title={Title}")">
+        Reddit
+    </a>
+
+    <!-- Hacker News (url, title) -->
+    <a class="share-btn hackernews" target="_blank" href="@($"https://news.ycombinator.com/submitlink?u={Url}&t={Title}")">
+        Hacker News
+    </a>
+
+    <!-- LinkedIn (url, title, summary, source url) -->
+    <a class="share-btn linkedin" target="_blank" href="@($"https://www.linkedin.com/sharing/share-offsite/?url={Url}")">
+        LinkedIn
+    </a>
+
+    <!-- Email (subject, body) -->
+    <a class="share-btn email" target="_blank" href="mailto:?subject={Title}&body=@($"{Url}{Environment.NewLine}{Description}")">
+        Email
+    </a>
+</div>
+
+@code {
+    private string description;
+    private string username;
+    private string title;
+
+    private string Encode(string value) => HttpUtility.UrlEncode(value);
+
+    public string Url => Encode(navigationManager.Uri);
+
+    [Parameter]
+    public string Title 
+    { 
+        get => Encode(title);
+        set => title = value;
+    }
+
+    [Parameter]
+    public string Description
+    { 
+        get => Encode(description);
+        set => description = value;
+    }
+
+    [Parameter]
+    public string Username
+    { 
+        get => Encode(username);
+        set => username = value;
+    }
+}
