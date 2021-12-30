@@ -53,7 +53,6 @@ To build the SSL certificate renewal container you can set the variables in the 
 
  - upvote or downvote article
  - emoji for article
- - share article
 
 **Nice to have**
 
@@ -63,7 +62,7 @@ To build the SSL certificate renewal container you can set the variables in the 
      - setup db's and tables if not exits in prod (ef core migrations (code first))
        - seed data using models and not sql file (startup)
    - Command execution (testing/documentation)
-   - pre prod stages (canaries(selenium)&bake time)
+   - pre prod stages (canaries(selenium, e2e)&bake time)
    - for cert renewal container
      - install newest cert renewal container in lambda after publish
    - for health check lambda
@@ -93,4 +92,5 @@ To build the SSL certificate renewal container you can set the variables in the 
  - improve redirection to https
  - improve css for loading tag on mobile
  - more logging, metrics, tracing, comments and docu
+ - validate functionality of each share article
  - ...
