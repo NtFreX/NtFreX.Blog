@@ -2,7 +2,7 @@
 using AutoMapper;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using NtFreX.Blog.Models;
+using NtFreX.Blog.Data.Models;
 
 namespace NtFreX.Blog.Data.MongoDb
 {

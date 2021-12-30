@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MongoDB.Driver;
-using NtFreX.Blog.Models;
+using NtFreX.Blog.Data.Models;
 
 namespace NtFreX.Blog.Data.MongoDb
 {

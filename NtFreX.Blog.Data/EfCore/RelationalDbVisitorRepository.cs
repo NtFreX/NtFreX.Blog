@@ -7,7 +7,7 @@ using Dapper.Contrib.Extensions;
 using MongoDB.Driver;
 using MySql.Data.MySqlClient;
 using NtFreX.Blog.Configuration;
-using NtFreX.Blog.Models;
+using NtFreX.Blog.Data.Models;
 
 namespace NtFreX.Blog.Data.EfCore
 {
