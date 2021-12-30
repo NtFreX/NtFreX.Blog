@@ -1,6 +1,6 @@
-﻿namespace NtFreX.Blog.Data.Models
+﻿namespace NtFreX.Blog.Models
 {
-    public class ImageModel
+    public class ImageDto
     {
         public string Id { get; set; }
         public string Name { get; set; }

@@ -192,6 +192,7 @@ namespace NtFreX.Blog
             services.AddTransient<ArticleService>();
             services.AddTransient<CommentService>();
             services.AddTransient<TagService>();
+            services.AddTransient<ImageService>();
 
             services.AddSingleton<IMapper>(x => new Mapper(new MapperConfiguration(configExpression => {
                 ApplictionMapperConfig.ConfigureAutomapper(configExpression);

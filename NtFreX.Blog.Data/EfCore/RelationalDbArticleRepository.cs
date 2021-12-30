@@ -1,4 +1,4 @@
-﻿using NtFreX.Blog.Models;
+﻿using NtFreX.Blog.Data.Models;
 using MySql.Data.MySqlClient;
 using Dapper;
 using AutoMapper;

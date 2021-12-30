@@ -8,6 +8,7 @@ using NtFreX.Blog.Cache;
 using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Models;
+using NtFreX.Blog.Data.Models;
 
 namespace NtFreX.Blog.Services
 {
@@ -103,9 +104,20 @@ namespace NtFreX.Blog.Services
                 UserAgent = userAgent
             };
             await visitorRepository.InsertAsync(model);
+            await cache.RemoveSaveAsync(CacheKeys.AllVisitors.Name);
             await cache.RemoveSaveAsync(CacheKeys.VisitorsByArticleId.Name(id));
         }
 
+        public async Task<IReadOnlyList<VisitorDto>> GetAllVisitorsAsync()
+        {
+            var visitors = await cache.CacheAsync(
+                CacheKeys.AllVisitors.Name,
+                CacheKeys.AllVisitors.TimeToLive,
+                () => visitorRepository.FindAsync());
+
+            return mapper.Map<IReadOnlyList<VisitorDto>>(visitors);
+        }
+        
         public async Task<long> CountVisitorsAsync(string id)
         {
             using var activity = traceActivityDecorator.StartActivity();
