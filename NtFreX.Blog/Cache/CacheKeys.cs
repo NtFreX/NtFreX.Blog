@@ -4,6 +4,8 @@ namespace NtFreX.Blog.Cache
 {
     public static class CacheKeys
     {
+        public static (string Name, TimeSpan TimeToLive) AllComments = (nameof(AllComments), TimeSpan.FromDays(7));
+        public static (string Name, TimeSpan TimeToLive) AllVisitors = (nameof(AllVisitors), TimeSpan.FromDays(7));
         public static (string Name, TimeSpan TimeToLive) AllTags = (nameof(AllTags), TimeSpan.FromDays(7));
         public static (string Name, TimeSpan TimeToLive) AllPublishedTags = (nameof(AllPublishedTags), TimeSpan.FromDays(7));
         public static (string Name, TimeSpan TimeToLive) AllDistinctTags = (nameof(AllDistinctTags), TimeSpan.FromDays(7));

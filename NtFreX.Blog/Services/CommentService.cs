@@ -11,6 +11,7 @@ using NtFreX.Blog.Configuration;
 using NtFreX.Blog.Data;
 using NtFreX.Blog.Messaging;
 using NtFreX.Blog.Models;
+using NtFreX.Blog.Data.Models;
 
 namespace NtFreX.Blog.Services
 {
@@ -33,6 +34,17 @@ namespace NtFreX.Blog.Services
             this.messageBus = messageBus;
         }
 
+        public async Task<IReadOnlyList<CommentDto>> GetAllCommentsAsync()
+        {
+            using var activity = traceActivityDecorator.StartActivity();
+            var cacheKey = CacheKeys.AllComments;
+
+            return await cache.CacheAsync(cacheKey.Name, cacheKey.TimeToLive, async () =>
+            {
+                var dbModels = await commentRepository.FindAsync();
+                return mapper.Map<List<CommentDto>>(dbModels).ToList();
+            });
+        }
 
         public async Task<IReadOnlyList<CommentDto>> GetCommentsByArticleIdAsync(string id)
         {
@@ -54,6 +66,7 @@ namespace NtFreX.Blog.Services
             dbModel.Date = DateTime.UtcNow;
 
             await commentRepository.InsertAsync(dbModel);
+            await cache.RemoveSaveAsync(CacheKeys.AllComments.Name);
             await cache.RemoveSaveAsync(CacheKeys.CommentsByArticleId.Name(model.ArticleId));
 
             var tags = new[] {

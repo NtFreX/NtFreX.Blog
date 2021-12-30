@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace NtFreX.Blog.Data.Models
+namespace NtFreX.Blog.Models
 {
-    public class VisitorModel
+    public class VisitorDto
     {
         public string Id { get; set; }
         public DateTime Date { get; set; }

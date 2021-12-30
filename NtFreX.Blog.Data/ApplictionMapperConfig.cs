@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using MongoDB.Bson;
-using NtFreX.Blog.Models;
+using NtFreX.Blog.Data.Models;
 
 namespace NtFreX.Blog.Data
 {

@@ -19,7 +19,8 @@
 {
     <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:50px;z-index:9999;" @onclick="@CreateArticleAsync">Create</button>
     <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:90px;z-index:9999;" @onclick="@ManageImages">Images</button>
-    <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:130px;z-index:9999;" @onclick="@LogoutAsync">Logout</button>
+    <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:130px;z-index:9999;" @onclick="@ExportAsync">Export</button>
+    <button type="button" class="btn btn-primary" style="position:absolute;right:60px;top:170px;z-index:9999;" @onclick="@LogoutAsync">Logout</button>
 }
 
 <div class="top-row d-flex">
@@ -110,5 +111,11 @@ else
     {
         await localStorage.RemoveItemAsync(JwtTokenHttpHandler.SessionStorageKey);
         isAdmin = false;
+    }
+
+    public async Task ExportAsync()
+    {
+        var export = await Http.GetStringAsync("/api/export");
+        await JSRuntime.InvokeVoidAsync("download", "export.json", export);
     }
 }

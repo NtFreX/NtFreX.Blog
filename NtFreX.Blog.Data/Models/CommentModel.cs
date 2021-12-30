@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NtFreX.Blog.Models
+namespace NtFreX.Blog.Data.Models
 {
     public class CommentModel
     {
