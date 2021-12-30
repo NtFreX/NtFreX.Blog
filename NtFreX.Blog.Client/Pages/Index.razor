@@ -57,6 +57,9 @@ else
         <ArticlePreview Article="@article.Article" Tags="@tags" IsAdmin="@isAdmin" Visits="@article.VisitorCount" />
     }
 }
+
+<NtFreX.Blog.Client.Components.Share Title="@(Configuration.BlogConfiguration.BlogTitle)" Description="@(Configuration.BlogConfiguration.BlogDescription)" Username="@(Configuration.BlogConfiguration.BlogOwner)" />
+
 @code {
     private IReadOnlyList<ArticleWithVisitsDto> articles;
     private TagDto[] tags;
