@@ -17,17 +17,17 @@
         </NavLink>
 
         <div class="links">
-            @if(!string.IsNullOrEmpty(Configuration.BlogConfiguration.TwitterUrl))
+            @if(!string.IsNullOrEmpty(Configuration.BlogConfiguration.TwitterUser))
             {
-                <div><a href="@Configuration.BlogConfiguration.TwitterUrl"><img src="twitter.ico" alt="Titter" />Twitter</a></div>
+                <div><a href="@($"https://twitter.com/{Configuration.BlogConfiguration.TwitterUser}")" target="_blank"><img src="twitter.ico" alt="Titter" />Twitter</a></div>
             }
             @if(!string.IsNullOrEmpty(@Configuration.BlogConfiguration.StackOverflowUrl)) 
             { 
-                <div><a href="@Configuration.BlogConfiguration.StackOverflowUrl"><img src="stackoverflow.ico" alt="Stack Overflow" />Stack Overflow</a></div>
+                <div><a href="@Configuration.BlogConfiguration.StackOverflowUrl" target="_blank"><img src="stackoverflow.ico" alt="Stack Overflow" />Stack Overflow</a></div>
             }
             @if (!string.IsNullOrEmpty(Configuration.BlogConfiguration.GithubUrl))
             {
-                <div><a href="@Configuration.BlogConfiguration.GithubUrl"><img src="github.svg" alt="Github" />GitHub</a></div>
+                <div><a href="@Configuration.BlogConfiguration.GithubUrl" target="_blank"><img src="github.svg" alt="Github" />GitHub</a></div>
             }
         </div>
 

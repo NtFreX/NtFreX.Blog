@@ -9,6 +9,7 @@
 @using Microsoft.AspNetCore.Components.Web.Extensions.Head
 
 <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - 2FA Login")' />
+<Meta name="robots" content="noindex" />
 
 <input @bind-value="secondFactor" type="text" />
 <NtFreX.Blog.Client.Components.Recaptcha @bind-CaptchaResponse="captchaResponse" />

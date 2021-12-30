@@ -9,6 +9,7 @@
 @using Microsoft.AspNetCore.Components.Web.Extensions.Head
 
 <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - Login")' />
+<Meta name="robots" content="noindex" />
 
 <input @bind-value="username" type="text" />
 <input @bind-value="password" type="password" />

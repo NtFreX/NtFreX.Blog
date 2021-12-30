@@ -10,7 +10,7 @@ namespace NtFreX.Blog.Configuration
         public const string BlogOwner = "NtFreX";
         public const string BlogOwnerEmail = "ntfrex (at) gmail (dot) com";
         public const string BlogOwnerProfileImage = "/api/image/profile.jpg";
-        public const string TwitterUrl = "https://twitter.com/NtFreX";
+        public const string TwitterUser = "NtFreX";
         public const string StackOverflowUrl = "https://stackoverflow.com/users/6583901/ntfrex?tab=profile";
         public const string GithubUrl = "https://github.com/NtFreX";
         public const string GoogleSiteVerification = "MAEgvSwMFjwJFm4j5G82JjicSuHql2MVwYxNziXk31c";
