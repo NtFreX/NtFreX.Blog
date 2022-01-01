@@ -35,9 +35,9 @@ else
     <Title Value='@($"{Configuration.BlogConfiguration.BlogTitle} - {article.Title}")' />
     <Meta property="og:url"                     content="@navigationManager.Uri" />
     <Meta property="og:type"                    content="article" />
-    <Meta property="og:article:published_time"  content="@(article.Date)" />
-    <Meta property="og:title"                   content="@(article.Title)" />
-    <Meta property="og:description"             content="@(article.Subtitle)" />
+    <Meta property="og:article:published_time"  content="@article.Date" />
+    <Meta property="og:title"                   content="@article.Title" />
+    <Meta property="og:description"             content="@metaDataDescription" />
     @foreach(var tag in tags)
     {
         <Meta property="og:article:tag"  content="@(tag.Name)" />
@@ -48,7 +48,7 @@ else
     }
 
     <Meta name="title"                content="@article.Title" />
-    <Meta name="description"          content="@Configuration.BlogConfiguration.BlogDescription" />
+    <Meta name="description"          content="@metaDataDescription" />
     <Meta name="keywords"             content="@metaDataTags"/>
 
     <div class="card article">
@@ -132,6 +132,9 @@ else
     private string captchaResponse;
     private string[] articleImages;
     private string metaDataTags;
+    private string metaDataDescription;
+
+    private const int MaxDescriptionLength = 400;
 
     [Parameter] public string Id { get; set; }
 
@@ -164,6 +167,16 @@ else
             .ToArray();
     } 
 
+    private string GetMetaDataDescription() 
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(article.Content);
+
+        var description = article.Subtitle + Environment.NewLine + doc.DocumentNode.InnerText;
+        var cutDescription = description.Substring(0, Math.Min(description.Length, MaxDescriptionLength));
+        return cutDescription.Length == description.Length ? cutDescription : $"{cutDescription}...";
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
@@ -187,6 +200,7 @@ else
 
             articleImages = GetImages();
             metaDataTags = string.Join(", ", tags.Select(x => x.Name));
+            metaDataDescription = GetMetaDataDescription();
         }
         catch
         {

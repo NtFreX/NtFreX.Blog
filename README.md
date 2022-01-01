@@ -53,6 +53,7 @@ To build the SSL certificate renewal container you can set the variables in the 
 
  - upvote or downvote article
  - emoji for article
+ - make subtitle optional
 
 **Nice to have**
 

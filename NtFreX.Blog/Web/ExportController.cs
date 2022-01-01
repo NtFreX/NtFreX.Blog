@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NtFreX.Blog.Auth;
+using NtFreX.Blog.Models;
 using NtFreX.Blog.Services;
 
 namespace NtFreX.Blog.Web
@@ -35,14 +38,14 @@ namespace NtFreX.Blog.Web
             var comments = await commentService.GetAllCommentsAsync();
             var visitors = await articleService.GetAllVisitorsAsync();
 
-            return Ok(new
+            return Ok(JsonSerializer.Serialize(new ExportDto
             {
-                images = images,
-                articles = articles,
-                tags = tags,
-                comments = comments,
-                visitors = visitors
-            });
+                Images = images.ToArray(),
+                Articles = articles.ToArray(),
+                Tags = tags.ToArray(),
+                Comments = comments.ToArray(),
+                Visitors = visitors.ToArray()
+            }));
         }
     }
 }
