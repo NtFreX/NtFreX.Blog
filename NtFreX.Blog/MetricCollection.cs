@@ -27,7 +27,12 @@ namespace NtFreX.Blog
         public IEnumerable<T> GetIncomplete(int dataPoints)
             => GetIncomplete(dataPoints, out _);
         public IEnumerable<T> GetIncomplete(int dataPoints, out int actualDataPoints)
-            => metrics.PeekIncomplete(dataPoints, out actualDataPoints).Select(x => x.Value);
+        {
+            var bucket = ToBucketStartTime(DateTime.UtcNow);
+            var begin = bucket - bucketTimeSpan * dataPoints;
+            var end = bucket + bucketTimeSpan;
+            return metrics.PeekIncomplete(dataPoints, out actualDataPoints).Where(x => x.BucketStartTime <= end && x.BucketStartTime >= begin).Select(x => x.Value);
+        }
 
         public void AddOrUpdate(Func<T> addAction, Action<T> updateAction)
         {
@@ -49,12 +54,15 @@ namespace NtFreX.Blog
             }
         }
 
+        private DateTime ToBucketStartTime(DateTime time)
+            => time.AddTicks(-(time.Ticks % bucketTimeSpan.Ticks));
+
         private void AddNewMetric(DateTime time, Func<T> addAction)
         {
             var metric = new Metric<T>
             {
                 Value = addAction(),
-                BucketStartTime = time.AddTicks(-(time.Ticks % bucketTimeSpan.Ticks))
+                BucketStartTime = ToBucketStartTime(time)
             };
             metrics.Add(metric);
         }
