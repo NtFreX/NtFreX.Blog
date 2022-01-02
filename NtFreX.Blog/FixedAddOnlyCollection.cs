@@ -14,6 +14,13 @@ namespace NtFreX.Blog
             data = new T[size];
         }
 
+
+        public void Add(params T[] items)
+        {
+            foreach (var item in items)
+                Add(item);
+        }
+
         public void Add(T item)
         {
             if(++position >= data.Length)
@@ -48,10 +55,10 @@ namespace NtFreX.Blog
                 return data.Skip(position + 1 - count).Take(count).ToArray();
             }
 
-            var left = position >= 0 ? data.Take(position + 1).ToArray() : Array.Empty<T>();
+            var left = position >= 0 ? data.Take(position + 1).Reverse().ToArray() : Array.Empty<T>();
 
             var leftOver = count - left.Length;
-            var right = data.Skip(data.Length - leftOver).Take(leftOver).ToArray();
+            var right = data.Skip(data.Length - leftOver).Take(leftOver).Reverse().ToArray();
 
             return left.Concat(right).ToArray();
         }
