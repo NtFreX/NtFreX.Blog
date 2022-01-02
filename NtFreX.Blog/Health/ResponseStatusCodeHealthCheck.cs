@@ -12,6 +12,7 @@ namespace NtFreX.Blog.Health
         public const int DataPoints = 3;
         public const int Max5xxResponseStatusCodes = 0;
         public const int Max4xxResponseStatusCodesInPercent = 10;
+        public const float DataPointLengthInMinutes = DataPoints * ResponseStatusCodeHealthCheckMiddleware.MetricPerXSeconds / 60f;
 
         public ResponseStatusCodeHealthCheck(ApplicationContextActivityDecorator traceActivityDecorator)
             : base(traceActivityDecorator) { }
@@ -20,20 +21,19 @@ namespace NtFreX.Blog.Health
         {
             var metrics = ResponseStatusCodeHealthCheckMiddleware.StatusCodeMetrics.GetIncomplete(DataPoints);
             var statusCodes = CombineMetrics(metrics, out var totalRequests);
-            var datapointLengthInMinutes = DataPoints * ResponseStatusCodeHealthCheckMiddleware.MetricPerXSeconds / 60f;
 
             foreach (var entry in statusCodes)
             {
                 var statusCode = entry.Key.ToString();
 
                 if (HasToMany5xxStatusCodes(statusCode, entry.Value))
-                    return Task.FromResult(HealthCheckResult.Degraded($"The server returned 5xx status codes in the last {datapointLengthInMinutes} minutes"));
+                    return Task.FromResult(HealthCheckResult.Degraded($"The server returned {entry.Value} 5xx status codes of {totalRequests} total requests in the last {DataPointLengthInMinutes} minutes"));
 
                 if (HasToMany4xxStatusCodes(statusCode, entry.Value, totalRequests))
-                    return Task.FromResult(HealthCheckResult.Degraded($"The server returned 4xx status codes in the last {datapointLengthInMinutes} minutes"));
+                    return Task.FromResult(HealthCheckResult.Degraded($"The server returned {entry.Value} 4xx status codes of {totalRequests} total requests in the last {DataPointLengthInMinutes} minutes"));
             }
 
-            return Task.FromResult(HealthCheckResult.Healthy($"There was no server side failing request in the last {datapointLengthInMinutes} minutes"));
+            return Task.FromResult(HealthCheckResult.Healthy($"There was no server side failing request in the last {DataPointLengthInMinutes} minutes"));
         }
 
         private bool HasToMany5xxStatusCodes(string statusCode, ulong count) => statusCode.StartsWith("5") && statusCode.Length == 3 && count > Max5xxResponseStatusCodes;
