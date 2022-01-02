@@ -1,6 +1,7 @@
 ﻿@page "/images"
 
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 @using Microsoft.AspNetCore.Components.Web.Extensions.Head
 
 <Title Value='@(Configuration.BlogConfiguration.BlogTitle + " - Images")' />
@@ -38,7 +39,14 @@
     }
     private async Task LoadImagesAsync()
     {
-        imageNames = await Http.GetFromJsonAsync<List<string>>($"/api/image/names");
+        try
+        {
+            imageNames = await Http.GetFromJsonAsync<List<string>>($"/api/image/names");
+        }
+        catch
+        {
+            await JSRuntime.InvokeVoidAsync("navigate", new[] { "/Unauthorized" });
+        }
     }
 
     private async Task UploadFileAsync(InputFileChangeEventArgs e)
