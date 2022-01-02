@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NtFreX.Blog
@@ -13,7 +14,6 @@ namespace NtFreX.Blog
         {
             data = new T[size];
         }
-
 
         public void Add(params T[] items)
         {
@@ -32,13 +32,13 @@ namespace NtFreX.Blog
                 dataCount++;
         }
 
-        public T[] PeekIncomplete(int count, out int actualCount)
+        public IEnumerable<T> PeekIncomplete(int count, out int actualCount)
         {
             actualCount = Math.Min(dataCount, count);
             return Peek(actualCount);
         }
 
-        public T[] Peek(int count)
+        public IEnumerable<T> Peek(int count)
         {
             if (count > data.Length)
             {
@@ -52,25 +52,31 @@ namespace NtFreX.Blog
 
             if (position > count - 1)
             {
-                return data.Skip(position + 1 - count).Take(count).ToArray();
+                return data.Skip(position + 1 - count).Take(count);
             }
 
-            var left = position >= 0 ? data.Take(position + 1).Reverse().ToArray() : Array.Empty<T>();
+            IEnumerable<T> left = Array.Empty<T>();
+            var leftLength = 0;
+            if (position >= 0)
+            {
+                leftLength = position + 1;
+                left = data.Take(leftLength).Reverse();
+            }
 
-            var leftOver = count - left.Length;
-            var right = data.Skip(data.Length - leftOver).Take(leftOver).Reverse().ToArray();
+            var leftOver = count - leftLength;
+            var right = data.Skip(data.Length - leftOver).Take(leftOver).Reverse();
 
-            return left.Concat(right).ToArray();
+            return left.Concat(right);
         }
 
         public bool TryPeek(out T item)
         {
             var success = TryPeek(1, out var items);
-            item = success ? items[0] : default;
+            item = success ? items.First() : default;
             return success;
         }
 
-        public bool TryPeek(int count, out T[] items)
+        public bool TryPeek(int count, out IEnumerable<T> items)
         {
             if(count > data.Length)
             {

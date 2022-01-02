@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,17 +8,10 @@ namespace NtFreX.Blog
 {
     public class ResponseStatusCodeHealthCheckMiddleware
     {
-        public class Metric
-        {
-            public ConcurrentDictionary<int, ulong> StatusCodeCount { get; set; }
-            public int StartMinute { get; set; }
-        }
-
         public const int MaxMetricItems = 10;
-        public const int MetricPerXMinutes = 5;
-        public static readonly FixedAddOnlyCollection<Metric> Metrics = new FixedAddOnlyCollection<Metric>(MaxMetricItems);
+        public const int MetricPerXSeconds = 5 * 60;
+        public static readonly MetricCollection<ConcurrentDictionary<int, ulong>> StatusCodeMetrics = new MetricCollection<ConcurrentDictionary<int, ulong>>(MaxMetricItems, MetricPerXSeconds);
 
-        private readonly object lockObj = new object();
         private readonly RequestDelegate next;
         private readonly ILogger<ResponseHeaderMiddleware> logger;
 
@@ -37,32 +29,9 @@ namespace NtFreX.Blog
             var statusCode = httpContext.Response.StatusCode;
             logger.LogInformation($"Respone status code will be {statusCode}");
 
-            lock (lockObj)
-            {
-                if (!Metrics.TryPeek(out var metric))
-                {
-                    AddNewMetric(statusCode);
-                }
-                else if(metric.StartMinute + MetricPerXMinutes <= DateTime.UtcNow.Minute || DateTime.UtcNow.Minute < metric.StartMinute)
-                {
-                    AddNewMetric(statusCode);
-                }
-                else
-                {
-                    metric.StatusCodeCount.AddOrUpdate(statusCode, 1, (key, value) => value + 1);
-                }
-            }
-        }
-
-        private void AddNewMetric(int statusCode)
-        {
-            var currentMinute = DateTime.UtcNow.Minute;
-            var metric = new Metric
-            {
-                StatusCodeCount = new ConcurrentDictionary<int, ulong>(new [] { new KeyValuePair<int, ulong>(statusCode, 1) }),
-                StartMinute = currentMinute - currentMinute % MetricPerXMinutes
-            };
-            Metrics.Add(metric);
+            StatusCodeMetrics.AddOrUpdate(
+                () => new ConcurrentDictionary<int, ulong>(new[] { new KeyValuePair<int, ulong>(statusCode, 1) }), 
+                metric => metric.AddOrUpdate(statusCode, 1, (key, value) => value + 1));
         }
     }
 }
