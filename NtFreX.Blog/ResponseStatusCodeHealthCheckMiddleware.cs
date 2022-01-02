@@ -16,8 +16,8 @@ namespace NtFreX.Blog
         }
 
         public const int MaxMetricItems = 10;
-        public const int MetricPerXMinutes = 15;
-        public static readonly FixedCollection<Metric> Metrics = new FixedCollection<Metric>(MaxMetricItems);
+        public const int MetricPerXMinutes = 5;
+        public static readonly FixedAddOnlyCollection<Metric> Metrics = new FixedAddOnlyCollection<Metric>(MaxMetricItems);
 
         private readonly object lockObj = new object();
         private readonly RequestDelegate next;
@@ -41,11 +41,11 @@ namespace NtFreX.Blog
             {
                 if (!Metrics.TryPeek(out var metric))
                 {
-                    metric = AddNewMetric(statusCode);
+                    AddNewMetric(statusCode);
                 }
-                else if(metric.StartMinute + MetricPerXMinutes <= DateTime.UtcNow.Minute)
+                else if(metric.StartMinute + MetricPerXMinutes <= DateTime.UtcNow.Minute || DateTime.UtcNow.Minute < metric.StartMinute)
                 {
-                    metric = AddNewMetric(statusCode);
+                    AddNewMetric(statusCode);
                 }
                 else
                 {
@@ -54,7 +54,7 @@ namespace NtFreX.Blog
             }
         }
 
-        private Metric AddNewMetric(int statusCode)
+        private void AddNewMetric(int statusCode)
         {
             var currentMinute = DateTime.UtcNow.Minute;
             var metric = new Metric
@@ -63,7 +63,6 @@ namespace NtFreX.Blog
                 StartMinute = currentMinute - currentMinute % MetricPerXMinutes
             };
             Metrics.Add(metric);
-            return metric;
         }
     }
 }
