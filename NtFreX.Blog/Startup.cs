@@ -121,7 +121,9 @@ namespace NtFreX.Blog
 
             services.AddHealthChecks()
                     .AddCheck<CertificateExpiringHealthCheck>(nameof(CertificateExpiringHealthCheck))
-                    .AddCheck<ToManyAdminLoginAttemptsHealthCheck>(nameof(ToManyAdminLoginAttemptsHealthCheck));
+                    .AddCheck<ToManyAdminLoginAttemptsHealthCheck>(nameof(ToManyAdminLoginAttemptsHealthCheck))
+                    .AddCheck<DoesReturnArticlesHealthCheck>(nameof(DoesReturnArticlesHealthCheck))
+                    .AddCheck<ResponseStatusCodeHealthCheck>(nameof(ResponseStatusCodeHealthCheck));
 
             if (BlogConfiguration.ApplicationCacheType == CacheType.Distributed)
             {
@@ -224,6 +226,7 @@ namespace NtFreX.Blog
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             app.UseMiddleware<ActivityTracingMiddleware>();
+            app.UseMiddleware<ResponseStatusCodeHealthCheckMiddleware>();
 
             if (env.IsProduction())
             {

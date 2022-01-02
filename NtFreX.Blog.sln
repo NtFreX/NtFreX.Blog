@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30523.141
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog", "NtFreX.Blog\NtFreX.Blog.csproj", "{BC5796D0-AB4E-4DEB-9959-8A6D639B5566}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Data", "NtFreX.Blog.Data\NtFreX.Blog.Data.csproj", "{A011E444-F50A-413D-B2CA-CAED551AFCBF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NtFreX.Blog.Core", "NtFreX.Blog.Core\NtFreX.Blog.Core.csproj", "{B9DFF829-DBD6-462D-BC0C-19DA95237102}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtFreX.Blog.Tests", "NtFreX.Blog.Tests\NtFreX.Blog.Tests.csproj", "{A9AE8080-A330-443F-BBA9-19D620D4D8FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{B9DFF829-DBD6-462D-BC0C-19DA95237102}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9DFF829-DBD6-462D-BC0C-19DA95237102}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9DFF829-DBD6-462D-BC0C-19DA95237102}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9AE8080-A330-443F-BBA9-19D620D4D8FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9AE8080-A330-443F-BBA9-19D620D4D8FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9AE8080-A330-443F-BBA9-19D620D4D8FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9AE8080-A330-443F-BBA9-19D620D4D8FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
