@@ -138,6 +138,12 @@ else
 
     [Parameter] public string Id { get; set; }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await LoadDataAsync();
+    }
+
     private string NormalizeImagePath(string imagePath)
     {
         if (imagePath.StartsWith("http://") || imagePath.StartsWith("https://"))
@@ -175,12 +181,6 @@ else
         var description = article.Subtitle + Environment.NewLine + doc.DocumentNode.InnerText;
         var cutDescription = description.Substring(0, Math.Min(description.Length, MaxDescriptionLength));
         return cutDescription.Length == description.Length ? cutDescription : $"{cutDescription}...";
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        await base.OnParametersSetAsync();
-        await LoadDataAsync();
     }
 
     private async Task LoadDataAsync()

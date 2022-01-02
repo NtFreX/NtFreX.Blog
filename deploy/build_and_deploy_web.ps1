@@ -1,3 +1,5 @@
+# CONFIGURE THOSE ENVIRONMENT VARIABLES
+
 $environment = "$env:VAR_ENVIRONMENT"
 $mysqlConfigPw = "$env:VAR_MYSQLCONFIGPW"
 $mysqlConfigUser = "$env:VAR_MYSQLCONFIGUSER"
@@ -7,6 +9,8 @@ $configPath = "$env:VAR_CONFIGPATH"
 $s3bucket = "$env:VAR_S3BUCKET"
 $app = "$env:VAR_APP"
 $ebsEnv = "$env:VAR_EBSENV"
+
+# -------------------------------------------------------
 
 $date = Get-Date -Format "yyyyMMddHHmmss"
 $version = "v" + $date
