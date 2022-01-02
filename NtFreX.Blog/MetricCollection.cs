@@ -14,14 +14,14 @@ namespace NtFreX.Blog
 
         private readonly object lockObj = new object();
         private readonly FixedAddOnlyCollection<Metric<T>> metrics;
-        private readonly TimeSpan metricsPer;
+        private readonly TimeSpan bucketTimeSpan;
 
-        public MetricCollection(int maxSize, int metricsPerSecond)
-            : this(maxSize, TimeSpan.FromSeconds(metricsPerSecond)) { }
-        public MetricCollection(int maxSize, TimeSpan metricsPer)
+        public MetricCollection(int maxBucketCount, int bucketTimeSpanInSeconds)
+            : this(maxBucketCount, TimeSpan.FromSeconds(bucketTimeSpanInSeconds)) { }
+        public MetricCollection(int maxBucketCount, TimeSpan bucketTimeSpan)
         {
-            this.metrics = new FixedAddOnlyCollection<Metric<T>>(maxSize);
-            this.metricsPer = metricsPer;
+            this.metrics = new FixedAddOnlyCollection<Metric<T>>(maxBucketCount);
+            this.bucketTimeSpan = bucketTimeSpan;
         }
 
         public IEnumerable<T> GetIncomplete(int dataPoints)
@@ -38,7 +38,7 @@ namespace NtFreX.Blog
                 {
                     AddNewMetric(now, addAction);
                 }
-                else if (metric.BucketStartTime.Add(metricsPer) <= now || now < metric.BucketStartTime)
+                else if (metric.BucketStartTime.Add(bucketTimeSpan) <= now || now < metric.BucketStartTime)
                 {
                     AddNewMetric(now, addAction);
                 }
@@ -54,7 +54,7 @@ namespace NtFreX.Blog
             var metric = new Metric<T>
             {
                 Value = addAction(),
-                BucketStartTime = time.AddTicks(-(time.Ticks % metricsPer.Ticks))
+                BucketStartTime = time.AddTicks(-(time.Ticks % bucketTimeSpan.Ticks))
             };
             metrics.Add(metric);
         }

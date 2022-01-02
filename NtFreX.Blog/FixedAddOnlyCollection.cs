@@ -52,7 +52,7 @@ namespace NtFreX.Blog
 
             if (position > count - 1)
             {
-                return data.Skip(position + 1 - count).Take(count);
+                return SkipAndTake(position + 1 - count, count);
             }
 
             IEnumerable<T> left = Array.Empty<T>();
@@ -60,11 +60,11 @@ namespace NtFreX.Blog
             if (position >= 0)
             {
                 leftLength = position + 1;
-                left = data.Take(leftLength).Reverse();
+                left = SkipAndTake(0, leftLength).Reverse();
             }
 
             var leftOver = count - leftLength;
-            var right = data.Skip(data.Length - leftOver).Take(leftOver).Reverse();
+            var right = SkipAndTake(data.Length - leftOver, leftOver).Reverse();
 
             return left.Concat(right);
         }
@@ -91,6 +91,15 @@ namespace NtFreX.Blog
 
             items = Peek(count);
             return true;
+        }
+
+        private IEnumerable<T> SkipAndTake(int skip, int take)
+        {
+            var stop = skip + take;
+            for(var i = skip; i < stop; i++)
+            {
+                yield return data[i];
+            }
         }
     }
 }
